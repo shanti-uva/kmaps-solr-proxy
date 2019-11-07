@@ -1,15 +1,15 @@
 {
   "name": "express-server",
   "version": "0.0.1",
-  "author": "Lukas Holzer <office@lukasholzer.com>",
+  "author": "Yuji Shinozaki <yuji.shinozaki@gmail.com>",
   "private": true,
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.14.1",
-    "express-http-proxy": "^1.6.0"
+    "express-http-proxy": "^1.6.0",
+    "simple-oauth2": "^3.0.1"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
