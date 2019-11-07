@@ -1,0 +1,37 @@
+version: '3'
+ 
+services:
+  reverseproxy:
+    build: nginx
+    image: nginx-server
+    container_name: nginx-server-container
+    ports:
+      # port to access: internal port
+      - 8984:9999
+    restart: always
+    networks:
+      - backend
+
+  express:
+    depends_on:
+      - reverseproxy
+    build:
+      context: express
+      args:
+       - dir=/opt/example.com/
+       - port=3000
+       - env=dev
+    image: express-server
+    container_name: express-server-container
+    volumes:
+      - ./express/src:/opt/example.com/src
+      - ./express/dist:/opt/example.com/dist
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: "bridge"
+volumes:
+  express:
+    driver: 'local'
