@@ -1,6 +1,17 @@
 version: '3'
  
 services:
+
+  # redis-overcommit-on-host
+  redis-overcommit:
+    build: redis-overcommit
+    restart: 'no'
+    privileged: true
+    volumes:
+      - /proc/sys/vm:/mnt/vm
+      - /proc/sys/net:/mnt/net
+      - /sys/kernel:/mnt/kernel
+
   reverseproxy:
     build: nginx
     image: nginx-server
@@ -15,6 +26,7 @@ services:
   express:
     depends_on:
       - reverseproxy
+      - redis
     build:
       context: express
       args:
@@ -28,6 +40,23 @@ services:
       - ./express/dist:/opt/example.com/dist
     networks:
       - backend
+    links:
+      - redis
+    environment:
+      - REDIS_URL=redis://cache
+      - PORT=3000
+
+  redis:
+    image: redis
+    build: redis
+    container_name: cache
+    command: redis-server /usr/local/etc/redis/redis.conf
+    expose:
+      - 6379
+    depends_on:
+      - redis-overcommit
+    sysctls:
+      - net.core.somaxconn=1024
 
 networks:
   backend:

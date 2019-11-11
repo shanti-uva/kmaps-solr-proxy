@@ -1,0 +1,8 @@
+{
+  "name": "kmaps-solr-proxy",
+  "scripts": {
+    "start": "docker-compose up --build",
+    "stop": "docker-compose down",
+    "clean": "docker stop $(docker ps -a -q) && docker rm -v $(docker ps -a -q) && docker rmi $(docker images -q)"
+  }
+}
