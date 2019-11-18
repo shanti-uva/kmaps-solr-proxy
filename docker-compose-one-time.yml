@@ -1,0 +1,14 @@
+version: '3.7'
+ 
+services:
+
+  redis-fix:
+    container_name: redis-fix
+    image: redis-fix
+    build: redis-fix
+    restart: 'no'
+    privileged: true
+    volumes:
+      - /proc/sys/vm:/mnt/vm
+      - /proc/sys/net:/mnt/net
+      - /sys/kernel:/mnt/kernel

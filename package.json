@@ -1,8 +1,31 @@
 {
   "name": "kmaps-solr-proxy",
   "scripts": {
+    "once": "docker-compose -f docker-compose-one-time.yml up --build",
+    "build": "docker-compose build && npm run push-all",
+    "build-express": "docker-compose build express-server && docker push 127.0.0.1:5000/express-server",
+    "build-nginx": "docker-compose build nginx-server && docker push 127.0.0.1:5000/nginx-server",
+    "build-redis": "docker-compose build redis-cache && docker push 127.0.0.1:5000/redis-cache",
+
     "start": "docker-compose up --build",
     "stop": "docker-compose down",
-    "clean": "docker stop $(docker ps -a -q) && docker rm -v $(docker ps -a -q) && docker rmi $(docker images -q)"
+    "clean": "npm run stop; npm run sstop;docker stop $(docker ps -a -q) ; docker rm -v $(docker ps -a -q) ; docker rmi -f $(docker images -q)",
+
+    "ps": "docker ps",
+    "sdeploy": "npm run registry; docker stack deploy -c docker-stack.yml bloop_stack && sleep 10 && docker service ls",
+    "sstop": "docker service ls && docker service rm $(docker service ls -q)",
+    "sls": "docker service ls",
+    "registry": "docker stack deploy -c docker-registry-stack.yml localrepo && sleep 10 && npm run sls",
+
+    "push-nginx": "docker push 127.0.0.1:5000/nginx-server",
+    "push-express": "docker push 127.0.0.1:5000/express-server",
+    "push-redis": "docker push 127.0.0.1:5000/redis-cache",
+
+    "push-all": "npm run push-nginx && npm run push-express && npm run push-redis",
+
+    "do-all": "npm run clean; npm run build && npm run registry && npm run push-all && npm run sdeploy",
+
+    "reload": "npm run push-all && npm run sstop && npm run sdeploy"
+
   }
 }

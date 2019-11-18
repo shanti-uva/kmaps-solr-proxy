@@ -1,0 +1,33 @@
+# Stack to start up a local docker registry
+
+version: '3.7'
+ 
+services:
+
+  # DOCKER REGISTRY
+  registry:
+    image: registry:2
+
+    ports:
+      - 5000:5000
+#    environment:
+#      REGISTRY_HTTP_TLS_CERTIFICATE: /run/secrets/domain.crt
+#      REGISTRY_HTTP_TLS_KEY: /run/secrets/domain.key
+#      REGISTRY_AUTH: htpasswd
+#      REGISTRY_AUTH_HTPASSWD_PATH: /run/secrets/htpasswd
+#      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+#      REGISTRY_HTTP_SECRET: 72b004e6d0b630b6
+    # declare the secrets that this service should see.  see docker secrets below
+    secrets:
+      - domain.key
+      - domain.crt
+      - htpasswd
+
+# SECRETS are provided by the container (docker secrets)
+secrets:
+  domain.key:
+    external: true
+  domain.crt:
+    external: true
+  htpasswd:
+    external: true

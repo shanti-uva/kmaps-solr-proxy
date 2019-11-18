@@ -1,60 +1,45 @@
 version: '3.7'
  
 services:
+
   nginx-server:
-    container_name: nginx-server
-    build: nginx
     image: 127.0.0.1:5000/nginx-server
-    restart: always
     networks:
       - backend
     ports:
       # external:internal
-      # map nginx on the proxy to 8080 on the host
-      - 8080:9999
+      - 8080:9999  # map 9999 to 8080 externally
       - 9443:443
     secrets:
-      - domain.crt
-      - domain.key
+      - source: domain.crt
+        target: /usr/local/secrets/domain.crt
+      - source: domain.key
+        target: /usr/local/secrets/domain.key
+    depends_on:
+      - express-server
 
   express-server:
-    container_name: express-server
-    build:
-      context: express
-      args:
-       - dir=/opt/example.com/
-       - port=3000
-       - env=dev
     image: 127.0.0.1:5000/express-server
     depends_on:
-      - nginx-server
       - redis-cache
     volumes:
       - ./express/src:/opt/example.com/src
       - ./express/dist:/opt/example.com/dist
     networks:
       - backend
-    links:
-      - redis-cache
     environment:
       - REDIS_URL=redis-cache://cache
       - PORT=3000
 
   redis-cache:
-    build: redis
     image: 127.0.0.1:5000/redis-cache
-    container_name: redis-cache
     command: redis-server /usr/local/etc/redis/redis.conf
-    expose:
-      - 6379
-#    depends_on:
-#      - redis-fix
     sysctls:
       - net.core.somaxconn=1024
 
 networks:
   backend:
-    driver: "bridge"
+    driver: "overlay"
 volumes:
   express:
     driver: 'local'

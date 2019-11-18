@@ -14,7 +14,7 @@ ARG env
 ENV HOME_DIR $dir
 ENV PORT $port
 ENV BUILDVAR $env
-ENV DEBUG express-http-proxy
+# ENV DEBUG express-http-proxy
 
 
 # use changes to package.json to force Docker not to use the cache
