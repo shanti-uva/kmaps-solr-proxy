@@ -17,22 +17,40 @@ app.get('/', function (req, res) {
 });
 
 // OAuth Redirect Route
-app.get('/oauth2/redirect', (req, res) => {
+app.get('/oauth2/redirect', (req, res, next) => {
     const requestToken = req.query.code
     axios({
         method: 'post',
-        url: `https://mandala.dd:8443/oauth2/token?client_id=${clientID}&client_secret=${clientSecret}&code=${requestToken}`,
+        url: `https://mandala-dev.shanti.virginia.edu/oauth2/token`,
+	data: {
+		"grant_type": "client_credentials",
+		"client_id": clientID,
+		"client_secret": clientSecret,
+		"code": requestToken
+	},
         headers: {
             accept: 'application/json'
         }
     }).then((response) => {
-        const accessToken = response.data.access_token
-        res.redirect(`/welcome.html?access_token=${accessToken}`)
+	console.log("We got a response!");
+	console.log(response.data);
+        const json = JSON.stringify(response.data,undefined,2);
+        res.redirect(`/process?access_token=${json}`)
     }).catch(error => {
-        console.log(error)
-    })
+        console.log(error);
+	next(error);
+    });
 })
 
+
+// Should be authorized now
+//
+
+app.get("/process", (req, res, next) => {
+	// We should have authorization token now	
+	const access = req.query.access_token;  // should be done through session instead of parameter
+	res.send("Hey we got authorization = <pre>" + access + "</pre>");
+});
 
 // Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path

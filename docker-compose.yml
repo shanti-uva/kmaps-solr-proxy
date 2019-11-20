@@ -12,7 +12,7 @@ services:
       # external:internal
       # map nginx on the proxy to 8080 on the host
       - 8080:9999
-      - 9443:443
+      - 443:443
     secrets:
       - domain.crt
       - domain.key

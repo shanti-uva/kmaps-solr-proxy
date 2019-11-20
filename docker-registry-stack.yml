@@ -7,7 +7,6 @@ services:
   # DOCKER REGISTRY
   registry:
     image: registry:2
-
     ports:
       - 5000:5000
 #    environment:
@@ -21,13 +20,10 @@ services:
     secrets:
       - domain.key
       - domain.crt
-      - htpasswd
 
 # SECRETS are provided by the container (docker secrets)
 secrets:
   domain.key:
     external: true
   domain.crt:
-    external: true
-  htpasswd:
     external: true

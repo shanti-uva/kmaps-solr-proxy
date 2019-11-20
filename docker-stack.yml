@@ -8,8 +8,8 @@ services:
       - backend
     ports:
       # external:internal
+      - 443:443
       - 8080:9999  # map 9999 to 8080 externally
-      - 9443:443
     secrets:
       - source: domain.crt
         target: /usr/local/secrets/domain.crt
