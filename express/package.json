@@ -10,7 +10,10 @@
     "express": "^4.14.1",
     "express-http-proxy": "^1.6.0",
     "simple-oauth2": "^3.0.1",
-    "axios": "*"
+    "axios": "^0.19.0",
+    "express-session": "^1.7.0",
+    "redis": "^2.8.0",
+    "connect-redis": "*"
   },
   "devDependencies": {}
 }

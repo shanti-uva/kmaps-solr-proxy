@@ -1,4 +1,4 @@
-FROM node:7.9-alpine
+FROM node:8.4-alpine
 MAINTAINER Yuji Shinozaki <yuji.shinozaki@gmail.com>
 
 #--------------
@@ -20,11 +20,12 @@ ENV BUILDVAR $env
 # use changes to package.json to force Docker not to use the cache
 # when we change our application's nodejs dependencies:
 COPY package.json /tmp/package.json
-RUN cd /tmp && yarn
-RUN mkdir -p $HOME_DIR && cp -a /tmp/node_modules $HOME_DIR/
 RUN apk update && apk add \
   openssl \
   curl
+RUN apk add yarn
+RUN cd /tmp && yarn
+RUN mkdir -p $HOME_DIR && cp -a /tmp/node_modules $HOME_DIR/
 
 WORKDIR $HOME_DIR
 COPY . $HOME_DIR

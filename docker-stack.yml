@@ -28,12 +28,14 @@ services:
     networks:
       - backend
     environment:
-      - REDIS_URL=redis-cache://cache
+      - REDIS_URL=redis://redis-cache
       - PORT=3000
 
   redis-cache:
     image: 127.0.0.1:5000/redis-cache
     command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - backend
     sysctls:
       - net.core.somaxconn=1024
 

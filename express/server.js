@@ -4,13 +4,14 @@ const axios = require('axios');
 
 // Session
 const session = require('express-session');
-const redis = require('redis');
-const redisClient = redis.createClient();
 
 // Redis
-const redisStore = require('connect-redis')(session);
 const REDIS_PORT = 6379;
 const REDIS_TTL = 86400;
+const REDIS_PASS = "W67lPiuZtb6V";
+const redis = require('redis');
+const redisClient = redis.createClient({ url: process.env.REDIS_URL, password: REDIS_PASS });
+const redisStore = require('connect-redis')(session);
 
 // Constants
 const PORT = 3000;
@@ -24,6 +25,24 @@ const OAuth_clientSecret = "12345";
 
 // Plainjane static pages
 app.use(express.static('public'))
+
+// Wire up Redis sessionStore
+app.use(
+    session({
+        secret: 'redissessionsecretshush',
+        name: 'solrProxyApp',
+        resave: false,
+        saveUninitialized: true,
+        cookie: {secure: false},
+        store: new redisStore({
+            host: process.env.REDIS_URL,
+            port: REDIS_PORT,
+	    password: REDIS_PASS,
+            client: redisClient,
+            ttl: REDIS_TTL
+        })
+    }));
+
 app.get('/', function (req, res) {
     res.sendFile("index.html");
 });
@@ -46,7 +65,10 @@ app.get('/oauth2/redirect', (req, res, next) => {
     }).then((response) => {
         // console.log("We got a response!");
         // console.log(response.data);
-        const token_json = JSON.stringify(response.data, undefined, 2);
+        const token_json = response.data;
+
+	console.log( "Probably should do some validation / verification here!");
+	console.dir(token_json);
         req.session["access_token"] = token_json;
         res.redirect(`/process`);
     }).catch(error => {
@@ -55,14 +77,15 @@ app.get('/oauth2/redirect', (req, res, next) => {
     });
 })
 
+app.get("/login", (req, res, next) => {
+	res.redirect('https://mandala-dev.shanti.virginia.edu/oauth2/authorize?client_id=test');
+});
 
 // Should be authorized now
-//
-
 app.get("/process", (req, res, next) => {
     // We should have authorization token now
     const access = req.session["access_token"];  // should be done through session instead of parameter
-    res.send("Hey we got authorization: <pre>" + access + "</pre>" +
+    res.send("Hey we got authorization: <pre>" + JSON.stringify(access, undefined, 2) + "</pre>" +
         "<p>Your Session looks like: " +
         "<pre>" + JSON.stringify(req.session,undefined,2) + "</pre>" );
 });
@@ -90,22 +113,6 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
     }
 }));
 
-
-// Wire up Redis sessionStore
-app.use(
-    session({
-        secret: 'redissessionsecretshush',
-        name: 'solrProxyApp',
-        resave: false,
-        saveUninitialized: true,
-        cookie: {secure: false},
-        store: new redisStore({
-            host: 'redis-cache',
-            port: REDIS_PORT,
-            client: redisClient,
-            ttl: REDIS_TTL
-        })
-    }));
 
 
 app.listen(PORT);
