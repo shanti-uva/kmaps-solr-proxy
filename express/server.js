@@ -117,7 +117,7 @@ app.get("/process", (req, res, next) => {
 
     axios({
         method: 'get',
-        url: process.env.MANDALA_URL + "oauthtest/usertest",
+        url: process.env.MANDALA_URL + "/oauthtest/usertest",
         headers: {
             accept: 'application/json',
             Authorization: "Bearer " + access,
