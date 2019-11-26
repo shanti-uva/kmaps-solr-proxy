@@ -52,7 +52,9 @@ app.get('/oauth2/redirect', (req, res, next) => {
     const requestToken = req.query.code
     axios({
         method: 'post',
-        url: `https://mandala-dev.shanti.virginia.edu/oauth2/token`,
+        // url: `https://mandala-dev.shanti.virginia.edu/oauth2/token`,
+        // url: "https://mandala.dd:8443/oauth2/token",
+        url: process.env.MANDALA_URL + "/oauth2/token",
         data: {
             "grant_type": "client_credentials",
             "client_id": OAuth_clientID,
@@ -67,8 +69,8 @@ app.get('/oauth2/redirect', (req, res, next) => {
         // console.log(response.data);
         const token_json = response.data;
 
-	console.log( "Probably should do some validation / verification here!");
-	console.dir(token_json);
+    	console.log( "Probably should do some validation / verification here!");
+	    console.dir(token_json);
         req.session["access_token"] = token_json;
         res.redirect(`/process`);
     }).catch(error => {
@@ -78,7 +80,7 @@ app.get('/oauth2/redirect', (req, res, next) => {
 })
 
 app.get("/login", (req, res, next) => {
-	res.redirect('https://mandala-dev.shanti.virginia.edu/oauth2/authorize?client_id=test');
+	res.redirect(process.env.MANDALA_URL + "/oauth2/authorize?client_id=test");
 });
 
 // Should be authorized now

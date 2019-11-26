@@ -28,6 +28,7 @@ services:
     networks:
       - backend
     environment:
+      - MANDALA_URL=https://mandala.dd:8443
       - REDIS_URL=redis://redis-cache
       - PORT=3000
 
