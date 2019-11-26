@@ -30,7 +30,7 @@ app.use(express.static('public'))
 app.use(
     session({
         secret: 'redissessionsecretshush',
-        name: 'solrProxyApp',
+        name: 'solrProxySession',
         resave: false,
         saveUninitialized: true,
         cookie: {secure: false},
@@ -59,6 +59,7 @@ app.get('/oauth2/redirect', (req, res, next) => {
             "grant_type": "client_credentials",
             "client_id": OAuth_clientID,
             "client_secret": OAuth_clientSecret,
+	        "scope": "openid profile email basic",
             "code": requestToken
         },
         headers: {
@@ -79,6 +80,7 @@ app.get('/oauth2/redirect', (req, res, next) => {
     });
 })
 
+// Login path.  Initiates the OAuth ping pong match...
 app.get("/login", (req, res, next) => {
 	res.redirect(process.env.MANDALA_URL + "/oauth2/authorize?client_id=test");
 });
@@ -86,15 +88,10 @@ app.get("/login", (req, res, next) => {
 // Should be authorized now
 app.get("/process", (req, res, next) => {
     // We should have authorization token now
-    const access = req.session["access_token"];  // should be done through session instead of parameter
-    res.send("Hey we got authorization: <pre>" + JSON.stringify(access, undefined, 2) + "</pre>" +
-        "<p>Your Session looks like: " +
-        "<pre>" + JSON.stringify(req.session,undefined,2) + "</pre>" );
 });
 
 // Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path
-
 
     proxyReqPathResolver: function (req) {
         return new Promise(function (resolve, reject) {
@@ -105,11 +102,11 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
                 queryString += "&"
             }
             queryString += "wt=json";
+            queryString += "wt=json";
             var updatedPath = '/solr' + parts[0];
             var resolvedPathValue = updatedPath + (queryString ? '?' + queryString : '');
             console.log("Resolving with " + resolvedPathValue);
             resolve(resolvedPathValue);
-
 
         });
     }
@@ -118,4 +115,3 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
 
 
 app.listen(PORT);
-console.log('Running on http://localhost:' + PORT);
