@@ -49,6 +49,10 @@ app.get('/', function (req, res) {
 
 // OAuth Redirect Route
 app.get('/oauth2/redirect', async (req, res, next) => {
+
+    console.log("==================================");
+    console.dir(req);
+    console.log("==================================");
     const requestToken = req.query.code
     const CSRF_TOKEN_URL = process.env.MANDALA_URL + "/services/session/token";
     const OAUTH2_TOKEN_URL = process.env.MANDALA_URL + "/oauth2/token";
@@ -74,7 +78,8 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         console.log("BEFORE THE POST");
         let response = await client.post(OAUTH2_TOKEN_URL,
             {
-                "grant_type": "client_credentials",
+                // "grant_type": "client_credentials",
+                "grant_type": "authorization_code",
                 "client_id": OAuth_clientID,
                 "client_secret": OAuth_clientSecret,
                 "scope": "openid profile email basic",
@@ -105,7 +110,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 
 // Login path.  Initiates the OAuth ping pong match...
 app.get("/login", (req, res, next) => {
-    res.redirect(process.env.MANDALA_URL + "/oauth2/authorize?client_id=test");
+    res.redirect(process.env.MANDALA_URL + "/oauth2/authorize?client_id=test&response_type=code&state=guidothekillerpimp&scope=openid+profile+email+basic");
 });
 
 // Should be authorized now
@@ -117,7 +122,8 @@ app.get("/process", (req, res, next) => {
 
     axios({
         method: 'get',
-        url: process.env.MANDALA_URL + "/oauthtest/usertest",
+        // url: process.env.MANDALA_URL + "/oauthtest/usertest",
+        url: process.env.MANDALA_URL + "/oauth2/UserInfo",
         headers: {
             accept: 'application/json',
             Authorization: "Bearer " + access,
