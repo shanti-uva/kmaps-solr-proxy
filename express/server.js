@@ -131,8 +131,10 @@ app.get("/process", (req, res, next) => {
 
     axios({
         method: 'get',
-        // url: process.env.MANDALA_URL + "/oauthtest/usertest",
-        url: process.env.MANDALA_URL + "/oauth2/UserInfo",
+        //url: process.env.MANDALA_URL + "/oauthtest/usertest",
+	// url: process.env.MANDALA_URL + "/oauth2/UserInfo",
+	url: process.env.MANDALA_URL + "/ogauth/oggroups",
+	// url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
             accept: 'application/json',
             Authorization: "Bearer " + access,
