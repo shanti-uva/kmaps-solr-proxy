@@ -124,9 +124,12 @@ app.get("/process", (req, res, next) => {
         method: 'get',
         //url: process.env.MANDALA_URL + "/oauthtest/usertest",
 	// url: process.env.MANDALA_URL + "/oauth2/UserInfo",
-	url: process.env.MANDALA_URL + "/ogauth/oggroups",
+	// url: process.env.MANDALA_URL + "/ogauth/ogmembership",
+	// url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
+	url: process.env.MANDALA_URL + "/ogauth/ogusergroups",
 	// url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
+            // accept: 'application/javascript',
             accept: 'application/json',
             Authorization: "Bearer " + access,
             "X-CSRF-Token": xcsrf
