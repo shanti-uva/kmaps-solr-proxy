@@ -6,22 +6,34 @@ const axios = require('axios');
 const session = require('express-session');
 
 // Redis
-const REDIS_PORT = 6379;
-const REDIS_TTL = 86400;
-const REDIS_PASS = "W67lPiuZtb6V";
+
+const REDIS_PORT = (process.env.REDIS_PASS)?process.env.REDIS_PORT:6379;
+const REDIS_TTL = (process.env.REDIS_PASS)?process.env.REDIS_TTL:86400;
+const REDIS_PASS = (process.env.REDIS_PASS)?process.env.REDIS_PASS:"W67lPiuZtb6V";
+const REDIS_URL = process.env.REDIS_URL;
+
 const redis = require('redis');
-const redisClient = redis.createClient({url: process.env.REDIS_URL, password: REDIS_PASS});
+const redisClient = redis.createClient({url: REDIS_URL, password: REDIS_PASS});
 const redisStore = require('connect-redis')(session);
 
 // Constants
-const PORT = 3000;
+const EXPRESS_PORT = (process.env.EXPRESS_PORT)?process.env.EXPRESS_PORT:3000;
 
 // App
 const app = express();
 
 // OAuth configs
-const OAuth_clientID = "test";
-const OAuth_clientSecret = "12345";
+const OAUTH_CLIENTID = (process.env.OAUTH_CLIENTID)?process.env.OAUTH_CLIENTID:"test";
+const OAUTH_CLIENTSECRET = (process.env.OAUTH_CLIENTSECRET)?process.env.OAUTH_CLIENTSECRET:"12345";
+
+// Session settings
+const SESSION_SECRET = 'redissessionsecretshush';
+const SESSION_COOKIE = 'solrProxySession';
+
+
+const CSRF_TOKEN_URL = process.env.MANDALA_URL + "/services/session/token";
+const OAUTH_TOKEN_URL = process.env.MANDALA_URL + "/oauth2/token";
+const OAUTH_SCOPE = "openid profile email basic";
 
 // Plainjane static pages
 app.use(express.static('public'))
@@ -29,13 +41,13 @@ app.use(express.static('public'))
 // Wire up Redis sessionStore
 app.use(
     session({
-        secret: 'redissessionsecretshush',
-        name: 'solrProxySession',
+        secret: SESSION_SECRET,
+        name: SESSION_COOKIE,
         resave: false,
         saveUninitialized: true,
         cookie: {secure: false},
         store: new redisStore({
-            host: process.env.REDIS_URL,
+            host: REDIS_URL,
             port: REDIS_PORT,
             password: REDIS_PASS,
             client: redisClient,
@@ -54,8 +66,6 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     console.dir(req);
     console.log("==================================");
     const requestToken = req.query.code
-    const CSRF_TOKEN_URL = process.env.MANDALA_URL + "/services/session/token";
-    const OAUTH2_TOKEN_URL = process.env.MANDALA_URL + "/oauth2/token";
 
     let client = axios.create(
         {withCredentials: true}
@@ -76,13 +86,13 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 
     try {
         console.log("BEFORE THE POST");
-        let response = await client.post(OAUTH2_TOKEN_URL,
+        let response = await client.post(OAUTH_TOKEN_URL,
             {
                 // "grant_type": "client_credentials",
                 "grant_type": "authorization_code",
-                "client_id": OAuth_clientID,
-                "client_secret": OAuth_clientSecret,
-                "scope": "openid profile email basic",
+                "client_id": OAUTH_CLIENTID,
+                "client_secret": OAUTH_CLIENTSECRET,
+                "scope": OAUTH_SCOPE,
                 "code": requestToken
             },
             {
@@ -100,7 +110,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         res.redirect(`/process`);
 
     } catch (err) {
-        const errorMsg = "Couldn't get OAuth2 token from " + OAUTH2_TOKEN_URL + " Error: " + err;
+        const errorMsg = "Couldn't get OAuth2 token from " + OAUTH_TOKEN_URL + " Error: " + err;
         console.error(errorMsg, err);
         res.send("ERROR: " + errorMsg);
         next(err);
@@ -116,7 +126,6 @@ app.get("/login", (req, res, next) => {
 // Should be authorized now
 app.get("/process", (req, res, next) => {
     // We should have authorization token now
-
     let access = req.session["access_token"].access_token;
     let xcsrf = req.session["csrf_token"];
 
@@ -177,6 +186,6 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
 }));
 
 
-app.listen(PORT);
-console.log("express is listening on port " + PORT);
+app.listen(EXPRESS_PORT);
+console.log("express is listening on port " + EXPRESS_PORT);
 
