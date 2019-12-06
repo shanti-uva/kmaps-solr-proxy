@@ -9,23 +9,24 @@ A Docker Stack deployed to a Docker Swarm which provides a Reverse Proxy for Sol
     - This proxy is the **Client** which makes calls to Mandala (**Provider**) on behalf of the **User**.
 
 ### Implementations used:
-       - Node.js
-       - ExpressJs
-       - Nginx
-       - Redis
-       - Docker (Swarm, Stacks, local Registry, Secrets)
-       - NPM
+- Node.js
+- ExpressJs
+- Nginx
+- Redis
+- Docker (Swarm, Stacks, local Registry, Secrets)
+- NPM
 
 ## Requirements
 
 - [Docker](http://docker.com) Download the app for: [Mac OSX](https://download.docker.com/mac/stable/Docker.dmg) or [Windows 10 App](https://download.docker.com/win/stable/InstallDocker.msi)
 - [Docker Compose](http://docs.docker.com/compose/) installation with [homebrew](https://brew.sh/index_de.html) `brew install docker-compose`
-- [Docker Swarm](https://docs.docker.com/engine/swarm/swarm-tutorial)
+- [Docker Swarm](https://docs.docker.com/engine/swarm/swarm-tutorial): Its important to configure your Docker instance to use swarm first.
 
 ### Commands
 
 #### Building
 
+- setup the registry: `npm run registry`
 - build all images: `npm run build`
 - build express: `npm run build-express`
 - build nginx: `npm run build-nginx`
