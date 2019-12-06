@@ -28,7 +28,7 @@ services:
     networks:
       - backend
     environment:
-      - MANDALA_URL=https://audio-video-dev.shanti.virginia.edu
+      - MANDALA_URL=https://images-dev.shanti.virginia.edu
       - REDIS_URL=redis://redis-cache
       - PORT=3000
 

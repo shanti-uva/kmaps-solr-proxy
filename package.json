@@ -10,7 +10,7 @@
     "stop": "docker-compose down",
     "clean": "npm run stop; npm run sstop;docker stop $(docker ps -a -q) ; docker rm -v $(docker ps -a -q) ; docker rmi -f $(docker images -q)",
     "ps": "docker ps",
-    "stack-deploy": "docker stack deploy -c docker-stack.yml bloop_stack && sleep 10 && docker service ls",
+    "stack-deploy": "docker stack deploy -c docker-app-stack.yml bloop_stack && sleep 10 && docker service ls",
     "stack-rm": "docker stack rm bloop_stack && docker service ls",
     "sstop": "docker service ls && docker service rm $(docker service ls -q)",
     "sls": "docker service ls",
