@@ -2,6 +2,8 @@
 
 ## Setup / Installation
 
+The following procedures will set up an example OAuth server and Provider for use with the **kmaps solr proxy**.
+In real life, you would adjust many of these configurations, and configure the proxy accordingly.
 
 ### OAuth configuration
 - Enable the following module (Note the _exact_ name):

@@ -1,11 +1,12 @@
 # Kmaps Solr Proxy
 
+### Description
 A Docker Stack deployed to a Docker Swarm which provides a Reverse Proxy for Solr queries to the kmaps solr indexes.   
-It :
-       - provides the basis for facilitating Public and Private Solr data
-       - uses OAuth to provide group data to make filtering decisions     
-           - Mandala (Drupal) is the OAuth Server and Provider
-           - This proxy is the Client which makes calls to Mandala on behalf of the User.
+
+- provides the basis for facilitating Public and Private Solr data
+- uses OAuth to provide group data to make filtering decisions     
+    - Mandala (Drupal) is the OAuth **Server** and **Provider**
+    - This proxy is the **Client** which makes calls to Mandala (**Provider**) on behalf of the **User**.
 
 ### Implementations used:
        - Node.js
@@ -49,6 +50,11 @@ npm run build express && npm run reload
 npm run sls
 docker service logs bloop_stack_express-server
 ```
+
+### Drupal Configuration
+
+Some example Drupal confguration files reside in the `./drupal` directory, See `drupal/README.md`.   
+
 ## Maintainer
 
 **Yuji Shinozaki**
