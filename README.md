@@ -1,40 +1,54 @@
-# Docker Setup for NODE.js with NGINX
+# Kmaps Solr Proxy
 
-This is a bootstrap repository for a basic setup with [Docker](https://docs.docker.com/) for an Node.js powered Development environment with [express.js](http://expressjs.com/) and as Proxy Reverse a simple [NGINX](https://www.nginx.com/resources/wiki/) setup.
+A Docker Stack deployed to a Docker Swarm which provides a Reverse Proxy for Solr queries to the kmaps solr indexes.   
+It :
+       - provides the basis for facilitating Public and Private Solr data
+       - uses OAuth to provide group data to make filtering decisions     
+           - Mandala (Drupal) is the OAuth Server and Provider
+           - This proxy is the Client which makes calls to Mandala on behalf of the User.
 
+### Implementations used:
+       - Node.js
+       - ExpressJs
+       - Nginx
+       - Redis
+       - Docker (Swarm, Stacks, local Registry, Secrets)
+       - NPM
 
 ## Requirements
 
 - [Docker](http://docker.com) Download the app for: [Mac OSX](https://download.docker.com/mac/stable/Docker.dmg) or [Windows 10 App](https://download.docker.com/win/stable/InstallDocker.msi)
 - [Docker Compose](http://docs.docker.com/compose/) installation with [homebrew](https://brew.sh/index_de.html) `brew install docker-compose`
-
-
-
-
+- [Docker Swarm](https://docs.docker.com/engine/swarm/swarm-tutorial)
 
 ### Commands
 
-A short list of useful commands for this Bootstrapping
+#### Building
 
-- run: `docker-compose up`
-- run in background: `docker-compose up -d`
-- run and build: `docker-compose up --build`
-- build: `docker-compose build`
-- shutdown: `docker-compose down`
-- list all images: `docker images -a`
-- list all running images: `docker ps`
+- build all images: `npm run build`
+- build express: `npm run build-express`
+- build nginx: `npm run build-nginx`
+- build redis: `npm run build-redis`
 
-### stop all containers and delete all images on Mac
+#### Deploying
 
-After this commands every image and container has to be pulled again and created.
-Clean reset if the hard drive is messed up.
+- deploy the application stack: `npm run stack-deploy`
+- remove the application stack: `npm run stack-rm`
+- reload the application stack: `npm run reload`
 
-``` bash
-docker stop $(docker ps -a -q)
-docker rm -v $(docker ps -a -q)
-docker rmi $(docker images -q)
+#### Other useful commands
+
+- Look at the express logs: `docker service logs bloop_stack_express-server`
+- Look at the nginx logs: `docker service logs bloop_stack_nginx-server`
+
+#### Typical build / deploy development cycle
+
 ```
-
+vi express/server.js
+npm run build express && npm run reload
+npm run sls
+docker service logs bloop_stack_express-server
+```
 ## Maintainer
 
 **Yuji Shinozaki**
