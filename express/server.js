@@ -6,7 +6,6 @@ const axios = require('axios');
 const session = require('express-session');
 
 // Redis
-
 const REDIS_PORT = (process.env.REDIS_PASS) ? process.env.REDIS_PORT : 6379;
 const REDIS_TTL = (process.env.REDIS_PASS) ? process.env.REDIS_TTL : 86400;
 const REDIS_PASS = (process.env.REDIS_PASS) ? process.env.REDIS_PASS : "W67lPiuZtb6V";
@@ -19,30 +18,26 @@ const redisStore = require('connect-redis')(session);
 // Constants
 const EXPRESS_PORT = (process.env.EXPRESS_PORT) ? process.env.EXPRESS_PORT : 3000;
 
-// App
+// Express App
 const app = express();
 
 // Session settings
 //
-const SESSION_SECRET = 'redissessionsecretshush';
-const SESSION_COOKIE = 'solrProxySession';
+const SESSION_SECRET = (process.env.SESSION_SECRET)?process.env.SESSION_SECRET:'redissessionsecretshush';
+const SESSION_COOKIE = (process.env.SESSION_COOKIE)?process.env.SESSION_COOKIE:'solrProxySession';
 
 // OAuth client configs 
 // We'll use the same client id and client secret for all OAuth servers/providers
-//
 const OAUTH_CLIENTID = (process.env.OAUTH_CLIENTID) ? process.env.OAUTH_CLIENTID : "test";
 const OAUTH_CLIENTSECRET = (process.env.OAUTH_CLIENTSECRET) ? process.env.OAUTH_CLIENTSECRET : "12345";
 
 // Config Array
-//
-
 const DEFAULT_OAUTH_SCOPE = "openid profile email basic";
 const AV_BASE = "https://audio-video-dev.shanti.virginia.edu";
 const TEXTS_BASE = "https://texts-dev.shanti.virginia.edu";
 const IMAGES_BASE = "https://images-dev.shanti.virginia.edu";
 const VISUALS_BASE = "https://visuals-dev.shanti.virginia.edu";
 const SOURCES_BASE = "https://sources-dev.shanti.virginia.edu";
-
 const MANAGER_CONFIGS = {
     "audio-video": {
         BASE_URL: AV_BASE,
@@ -111,13 +106,13 @@ app.use(
         })
     }));
 
+// Default Static Route
 app.get('/', function (req, res) {
     res.sendFile("index.html");
 });
 
-// OAuth Redirect Route
+// OAuth Redirect Route - OAuth Server Authorize request should redirect here.
 app.get('/oauth2/redirect', async (req, res, next) => {
-
     console.log("==================================");
     console.dir(req.query);
     console.log("==================================");
@@ -197,22 +192,25 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 
 // Login path.  Initiates the OAuth ping pong match...
 app.get("/login", (req, res, next) => {
-    let error = req.query.error || "";
     // TODO: need validation of request parameter
     let mgr = req.query.asset_manager || "audio-video";
+    const mgr_cfg = MANAGER_CONFIGS[mgr];
+    let error = req.query.error || "";
     let state = {
         asset_manager: mgr,
         previous_error: error
     }
     // TODO: maybe we should hex-encode this?
     let statejson = encodeURI(JSON.stringify(state));
-    res.redirect(MANAGER_CONFIGS[mgr].OAUTH_AUTHORIZE_URL + "?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
+    res.redirect(mgr_cfg.OAUTH_AUTHORIZE_URL + "?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
 });
 
 // Should be authorized now
 app.get("/process", (req, res, next) => {
     // Check the session
     const mgr = req.query.asset_mgr || "unknown";
+    const mgr_cfg = MANAGER_CONFIGS[mgr];
+
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
         console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
         console.dir(req.session.access_token);
@@ -221,7 +219,6 @@ app.get("/process", (req, res, next) => {
         res.redirect("/login?asset_mgr=" + mgr + "&error=no_access_token");
         return;
     }
-
 
     // We should have authorization token now
     console.log("session.access_token=" + JSON.stringify(req.session["access_token"]));
@@ -234,7 +231,7 @@ app.get("/process", (req, res, next) => {
         // url: process.env.MANDALA_URL + "/oauth2/UserInfo",
         // url: process.env.MANDALA_URL + "/ogauth/ogmembership",
         // url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
-        url: MANAGER_CONFIGS[mgr].BASE_URL + "/ogauth/ogusergroups",
+        url: mgr_cfg.BASE_URL + "/ogauth/ogusergroups",
         // url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
             // accept: 'application/javascript',
@@ -282,12 +279,10 @@ app.get("/process", (req, res, next) => {
     // console.dir(req.session);
 });
 
-// Proxy
+// Solr Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path
-
     proxyReqPathResolver: function (req) {
         return new Promise(function (resolve, reject) {
-
             var parts = req.url.split('?');
             var queryString = (parts[1] !== undefined && parts[1] !== 'undefined') ? parts[1] : "";
             if (queryString) {
@@ -299,12 +294,9 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
             var resolvedPathValue = updatedPath + (queryString ? '?' + queryString : '');
             console.log("Resolving with " + resolvedPathValue);
             resolve(resolvedPathValue);
-
         });
     }
 }));
 
-
 app.listen(EXPRESS_PORT);
 console.log("express is listening on port " + EXPRESS_PORT);
-
