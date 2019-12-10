@@ -36,7 +36,7 @@ const OAUTH_CLIENTSECRET = (process.env.OAUTH_CLIENTSECRET)?process.env.OAUTH_CL
 // Config Array
 //
 
-const DEFAULT_AUTH_SCOPE = "openid profile email basic";
+const DEFAULT_OAUTH_SCOPE = "openid profile email basic";
 const AV_BASE = "https://audio-video-dev.shanti.virginia.edu";
 const TEXTS_BASE = "https://texts-dev.shanti.virginia.edu";
 const IMAGES_BASE = "https://images-dev.shanti.virginia.edu";
@@ -45,29 +45,49 @@ const SOURCES_BASE = "https://sources-dev.shanti.virginia.edu";
 
 const MANAGER_CONFIGS = {
 	"audio-video": {
+		BASE_URL: AV_BASE,
 		CSRF_URL: AV_BASE + "/services/session/token",
+		OAUTH_AUTHORIZE_URL: AV_BASE + "/oauth2/authorize",
 		OAUTH_TOKEN_URL: AV_BASE + "/oauth2/token",
-		AUTH_SCOPE: DEFAULT_AUTH_SCOPE
+		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+		OAUTH_CLIENTID: OAUTH_CLIENTID,
+		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
 	},
 	"texts": {
+		BASE_URL: TEXTS_BASE,
 		CSRF_URL: TEXTS_BASE + "/services/session/token",
+		OAUTH_AUTHORIZE_URL: TEXTS_BASE + "/oauth2/authorize",
 		OAUTH_TOKEN_URL: TEXTS_BASE + "/oauth2/token",
-		AUTH_SCOPE: DEFAULT_AUTH_SCOPE
+		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+		OAUTH_CLIENTID: OAUTH_CLIENTID,
+		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
 	},
 	"images": {
+		BASE_URL: IMAGES_BASE,
 		CSRF_URL: IMAGES_BASE + "/services/session/token",
+		OAUTH_AUTHORIZE_URL: IMAGES_BASE + "/oauth2/authorize",
 		OAUTH_TOKEN_URL: IMAGES_BASE + "/oauth2/token",
-		AUTH_SCOPE: DEFAULT_AUTH_SCOPE
+		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+		OAUTH_CLIENTID: OAUTH_CLIENTID,
+		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
 	},
 	"visuals": {
+		BASE_URL: VISUALS_BASE,
 		CSRF_URL: VISUALS_BASE + "/services/session/token",
+		OAUTH_AUTHORIZE_URL: VISUALS_BASE + "/oauth2/authorize",
 		OAUTH_TOKEN_URL: VISUALS_BASE + "/oauth2/token",
-		AUTH_SCOPE: DEFAULT_AUTH_SCOPE
+		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+		OAUTH_CLIENTID: OAUTH_CLIENTID,
+		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
 	},
 	"sources": {
+		BASE_URL: SOURCES_BASE,
 		CSRF_URL: SOURCES_BASE + "/services/session/token",
+		OAUTH_AUTHORIZE_URL: SOURCES_BASE + "/oauth2/authorize",
 		OAUTH_TOKEN_URL: SOURCES_BASE + "/oauth2/token",
-		AUTH_SCOPE: DEFAULT_AUTH_SCOPE
+		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+		OAUTH_CLIENTID: OAUTH_CLIENTID,
+		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
 	}
 }
 
@@ -110,6 +130,10 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     const mgr = state.asset_manager||"unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
 
+    console.log("USING mgr = " + mgr);
+    console.log("USING mgr_cfg = " + JSON.stringify(mgr_cfg,undefined,2));
+
+
     let client = axios.create(
         { withCredentials: true }
     );
@@ -127,9 +151,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         return;
     }
 
-    try {
-        console.log("BEFORE THE POST");
-        let response = await client.post(mgr_cfg.OAUTH_TOKEN_URL,
+	let request_data =
             {
                 // "grant_type": "client_credentials",
                 "grant_type": "authorization_code",
@@ -137,13 +159,19 @@ app.get('/oauth2/redirect', async (req, res, next) => {
                 "client_secret": mgr_cfg.OAUTH_CLIENTSECRET,
                 "scope": mgr_cfg.OAUTH_SCOPE,
                 "code": requestToken
-            },
+            };
+	let request_config =
             {
                 headers: {
                     "accept": 'application/json',
-                    "x-csrf-token": csrf
+                    "x-csrf-token": req.session["csrf_token"][mgr]
                 }
-            }
+           };
+    try {
+        console.log("BEFORE THE POST");
+        let response = await client.post(mgr_cfg.OAUTH_TOKEN_URL,
+            request_data,
+	    request_config
         )
         console.log("AFTER THE POST");
         let token_json = response.data;
@@ -153,10 +181,12 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         res.redirect('/process?asset_mgr='+ mgr);
 
     } catch (err) {
-        const errorMsg = "Couldn't get OAuth2 token from " + OAUTH_TOKEN_URL + " Error: " + err;
-        console.error(errorMsg, err);
-        res.send("ERROR: " + errorMsg);
-        next(err);
+	let debug = JSON.stringify(err.response.data, undefined, 2) + "\n" + JSON.stringify(request_data, undefined, 2) + "\n" + JSON.stringify(request_config, undefined, 2);
+        const errorMsg = "Couldn't get OAuth2 token from " + mgr_cfg.OAUTH_TOKEN_URL + " Error: " + err.message;
+        console.error(errorMsg);
+	console.error("ERROR DATA: " + debug);
+        res.send("ERROR: " + errorMsg + "<p><pre>" +  debug + "</pre>");
+        // next(err);
         return;
     }
 })
@@ -167,12 +197,12 @@ app.get("/login", (req, res, next) => {
     // TODO: need validation of request parameter
     let mgr = req.query.asset_manager || "audio-video";
     let state = {
-	asset_manager:mgr 
+	asset_manager:mgr, 
 	previous_error:error
     }
     // TODO: maybe we should hex-encode this?
     let statejson = encodeURI(JSON.stringify(state));
-    res.redirect(process.env.MANDALA_URL + "/oauth2/authorize?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
+    res.redirect(MANAGER_CONFIGS[mgr].OAUTH_AUTHORIZE_URL +"?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
 });
 
 // Should be authorized now
@@ -200,7 +230,7 @@ app.get("/process", (req, res, next) => {
 	// url: process.env.MANDALA_URL + "/oauth2/UserInfo",
 	// url: process.env.MANDALA_URL + "/ogauth/ogmembership",
 	// url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
-	url: process.env.MANDALA_URL + "/ogauth/ogusergroups",
+	url: MANAGER_CONFIGS[mgr].BASE_URL + "/ogauth/ogusergroups",
 	// url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
             // accept: 'application/javascript',
