@@ -7,9 +7,9 @@ const session = require('express-session');
 
 // Redis
 
-const REDIS_PORT = (process.env.REDIS_PASS)?process.env.REDIS_PORT:6379;
-const REDIS_TTL = (process.env.REDIS_PASS)?process.env.REDIS_TTL:86400;
-const REDIS_PASS = (process.env.REDIS_PASS)?process.env.REDIS_PASS:"W67lPiuZtb6V";
+const REDIS_PORT = (process.env.REDIS_PASS) ? process.env.REDIS_PORT : 6379;
+const REDIS_TTL = (process.env.REDIS_PASS) ? process.env.REDIS_TTL : 86400;
+const REDIS_PASS = (process.env.REDIS_PASS) ? process.env.REDIS_PASS : "W67lPiuZtb6V";
 const REDIS_URL = process.env.REDIS_URL;
 
 const redis = require('redis');
@@ -17,7 +17,7 @@ const redisClient = redis.createClient({url: REDIS_URL, password: REDIS_PASS});
 const redisStore = require('connect-redis')(session);
 
 // Constants
-const EXPRESS_PORT = (process.env.EXPRESS_PORT)?process.env.EXPRESS_PORT:3000;
+const EXPRESS_PORT = (process.env.EXPRESS_PORT) ? process.env.EXPRESS_PORT : 3000;
 
 // App
 const app = express();
@@ -30,8 +30,8 @@ const SESSION_COOKIE = 'solrProxySession';
 // OAuth client configs 
 // We'll use the same client id and client secret for all OAuth servers/providers
 //
-const OAUTH_CLIENTID = (process.env.OAUTH_CLIENTID)?process.env.OAUTH_CLIENTID:"test";
-const OAUTH_CLIENTSECRET = (process.env.OAUTH_CLIENTSECRET)?process.env.OAUTH_CLIENTSECRET:"12345";
+const OAUTH_CLIENTID = (process.env.OAUTH_CLIENTID) ? process.env.OAUTH_CLIENTID : "test";
+const OAUTH_CLIENTSECRET = (process.env.OAUTH_CLIENTSECRET) ? process.env.OAUTH_CLIENTSECRET : "12345";
 
 // Config Array
 //
@@ -44,51 +44,51 @@ const VISUALS_BASE = "https://visuals-dev.shanti.virginia.edu";
 const SOURCES_BASE = "https://sources-dev.shanti.virginia.edu";
 
 const MANAGER_CONFIGS = {
-	"audio-video": {
-		BASE_URL: AV_BASE,
-		CSRF_URL: AV_BASE + "/services/session/token",
-		OAUTH_AUTHORIZE_URL: AV_BASE + "/oauth2/authorize",
-		OAUTH_TOKEN_URL: AV_BASE + "/oauth2/token",
-		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
-		OAUTH_CLIENTID: OAUTH_CLIENTID,
-		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
-	},
-	"texts": {
-		BASE_URL: TEXTS_BASE,
-		CSRF_URL: TEXTS_BASE + "/services/session/token",
-		OAUTH_AUTHORIZE_URL: TEXTS_BASE + "/oauth2/authorize",
-		OAUTH_TOKEN_URL: TEXTS_BASE + "/oauth2/token",
-		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
-		OAUTH_CLIENTID: OAUTH_CLIENTID,
-		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
-	},
-	"images": {
-		BASE_URL: IMAGES_BASE,
-		CSRF_URL: IMAGES_BASE + "/services/session/token",
-		OAUTH_AUTHORIZE_URL: IMAGES_BASE + "/oauth2/authorize",
-		OAUTH_TOKEN_URL: IMAGES_BASE + "/oauth2/token",
-		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
-		OAUTH_CLIENTID: OAUTH_CLIENTID,
-		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
-	},
-	"visuals": {
-		BASE_URL: VISUALS_BASE,
-		CSRF_URL: VISUALS_BASE + "/services/session/token",
-		OAUTH_AUTHORIZE_URL: VISUALS_BASE + "/oauth2/authorize",
-		OAUTH_TOKEN_URL: VISUALS_BASE + "/oauth2/token",
-		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
-		OAUTH_CLIENTID: OAUTH_CLIENTID,
-		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
-	},
-	"sources": {
-		BASE_URL: SOURCES_BASE,
-		CSRF_URL: SOURCES_BASE + "/services/session/token",
-		OAUTH_AUTHORIZE_URL: SOURCES_BASE + "/oauth2/authorize",
-		OAUTH_TOKEN_URL: SOURCES_BASE + "/oauth2/token",
-		OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
-		OAUTH_CLIENTID: OAUTH_CLIENTID,
-		OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
-	}
+    "audio-video": {
+        BASE_URL: AV_BASE,
+        CSRF_URL: AV_BASE + "/services/session/token",
+        OAUTH_AUTHORIZE_URL: AV_BASE + "/oauth2/authorize",
+        OAUTH_TOKEN_URL: AV_BASE + "/oauth2/token",
+        OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+        OAUTH_CLIENTID: OAUTH_CLIENTID,
+        OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
+    },
+    "texts": {
+        BASE_URL: TEXTS_BASE,
+        CSRF_URL: TEXTS_BASE + "/services/session/token",
+        OAUTH_AUTHORIZE_URL: TEXTS_BASE + "/oauth2/authorize",
+        OAUTH_TOKEN_URL: TEXTS_BASE + "/oauth2/token",
+        OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+        OAUTH_CLIENTID: OAUTH_CLIENTID,
+        OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
+    },
+    "images": {
+        BASE_URL: IMAGES_BASE,
+        CSRF_URL: IMAGES_BASE + "/services/session/token",
+        OAUTH_AUTHORIZE_URL: IMAGES_BASE + "/oauth2/authorize",
+        OAUTH_TOKEN_URL: IMAGES_BASE + "/oauth2/token",
+        OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+        OAUTH_CLIENTID: OAUTH_CLIENTID,
+        OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
+    },
+    "visuals": {
+        BASE_URL: VISUALS_BASE,
+        CSRF_URL: VISUALS_BASE + "/services/session/token",
+        OAUTH_AUTHORIZE_URL: VISUALS_BASE + "/oauth2/authorize",
+        OAUTH_TOKEN_URL: VISUALS_BASE + "/oauth2/token",
+        OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+        OAUTH_CLIENTID: OAUTH_CLIENTID,
+        OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
+    },
+    "sources": {
+        BASE_URL: SOURCES_BASE,
+        CSRF_URL: SOURCES_BASE + "/services/session/token",
+        OAUTH_AUTHORIZE_URL: SOURCES_BASE + "/oauth2/authorize",
+        OAUTH_TOKEN_URL: SOURCES_BASE + "/oauth2/token",
+        OAUTH_SCOPE: DEFAULT_OAUTH_SCOPE,
+        OAUTH_CLIENTID: OAUTH_CLIENTID,
+        OAUTH_CLIENTSECRET: OAUTH_CLIENTSECRET
+    }
 }
 
 // Plainjane static pages
@@ -125,17 +125,21 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     const state = JSON.parse(req.query.state);
     console.log("We got state = " + JSON.stringify(state, undefined, 2));
 
-    if (!req.session.csrf_token) { req.session.csrf_token = {}; }
-    if (!req.session.access_token) { req.session.access_token = {}; }
-    const mgr = state.asset_manager||"unknown";
+    if (!req.session.csrf_token) {
+        req.session.csrf_token = {};
+    }
+    if (!req.session.access_token) {
+        req.session.access_token = {};
+    }
+    const mgr = state.asset_manager || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
 
     console.log("USING mgr = " + mgr);
-    console.log("USING mgr_cfg = " + JSON.stringify(mgr_cfg,undefined,2));
+    console.log("USING mgr_cfg = " + JSON.stringify(mgr_cfg, undefined, 2));
 
 
     let client = axios.create(
-        { withCredentials: true }
+        {withCredentials: true}
     );
 
     let csrf = "";
@@ -151,41 +155,41 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         return;
     }
 
-	let request_data =
-            {
-                // "grant_type": "client_credentials",
-                "grant_type": "authorization_code",
-                "client_id": mgr_cfg.OAUTH_CLIENTID,
-                "client_secret": mgr_cfg.OAUTH_CLIENTSECRET,
-                "scope": mgr_cfg.OAUTH_SCOPE,
-                "code": requestToken
-            };
-	let request_config =
-            {
-                headers: {
-                    "accept": 'application/json',
-                    "x-csrf-token": req.session["csrf_token"][mgr]
-                }
-           };
+    let request_data =
+        {
+            // "grant_type": "client_credentials",
+            "grant_type": "authorization_code",
+            "client_id": mgr_cfg.OAUTH_CLIENTID,
+            "client_secret": mgr_cfg.OAUTH_CLIENTSECRET,
+            "scope": mgr_cfg.OAUTH_SCOPE,
+            "code": requestToken
+        };
+    let request_config =
+        {
+            headers: {
+                "accept": 'application/json',
+                "x-csrf-token": req.session["csrf_token"][mgr]
+            }
+        };
     try {
         console.log("BEFORE THE POST");
         let response = await client.post(mgr_cfg.OAUTH_TOKEN_URL,
             request_data,
-	    request_config
+            request_config
         )
         console.log("AFTER THE POST");
         let token_json = response.data;
         console.log("GOT token = " + token_json);
         console.dir(token_json);
         req.session["access_token"][mgr] = token_json;
-        res.redirect('/process?asset_mgr='+ mgr);
+        res.redirect('/process?asset_mgr=' + mgr);
 
     } catch (err) {
-	let debug = JSON.stringify(err.response.data, undefined, 2) + "\n" + JSON.stringify(request_data, undefined, 2) + "\n" + JSON.stringify(request_config, undefined, 2);
+        let debug = JSON.stringify(err.response.data, undefined, 2) + "\n" + JSON.stringify(request_data, undefined, 2) + "\n" + JSON.stringify(request_config, undefined, 2);
         const errorMsg = "Couldn't get OAuth2 token from " + mgr_cfg.OAUTH_TOKEN_URL + " Error: " + err.message;
         console.error(errorMsg);
-	console.error("ERROR DATA: " + debug);
-        res.send("ERROR: " + errorMsg + "<p><pre>" +  debug + "</pre>");
+        console.error("ERROR DATA: " + debug);
+        res.send("ERROR: " + errorMsg + "<p><pre>" + debug + "</pre>");
         // next(err);
         return;
     }
@@ -197,26 +201,26 @@ app.get("/login", (req, res, next) => {
     // TODO: need validation of request parameter
     let mgr = req.query.asset_manager || "audio-video";
     let state = {
-	asset_manager:mgr, 
-	previous_error:error
+        asset_manager: mgr,
+        previous_error: error
     }
     // TODO: maybe we should hex-encode this?
     let statejson = encodeURI(JSON.stringify(state));
-    res.redirect(MANAGER_CONFIGS[mgr].OAUTH_AUTHORIZE_URL +"?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
+    res.redirect(MANAGER_CONFIGS[mgr].OAUTH_AUTHORIZE_URL + "?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
 });
 
 // Should be authorized now
 app.get("/process", (req, res, next) => {
-     // Check the session
-     const mgr = req.query.asset_mgr||"unknown";
-     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
-	     console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
-	     console.dir(req.session.access_token);
+    // Check the session
+    const mgr = req.query.asset_mgr || "unknown";
+    if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
+        console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
+        console.dir(req.session.access_token);
 
-	     // prevent error loop?
-	     res.redirect("/login?asset_mgr=" + mgr + "&error=no_access_token");
-	     return;
-     }
+        // prevent error loop?
+        res.redirect("/login?asset_mgr=" + mgr + "&error=no_access_token");
+        return;
+    }
 
 
     // We should have authorization token now
@@ -227,11 +231,11 @@ app.get("/process", (req, res, next) => {
     axios({
         method: 'get',
         //url: process.env.MANDALA_URL + "/oauthtest/usertest",
-	// url: process.env.MANDALA_URL + "/oauth2/UserInfo",
-	// url: process.env.MANDALA_URL + "/ogauth/ogmembership",
-	// url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
-	url: MANAGER_CONFIGS[mgr].BASE_URL + "/ogauth/ogusergroups",
-	// url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
+        // url: process.env.MANDALA_URL + "/oauth2/UserInfo",
+        // url: process.env.MANDALA_URL + "/ogauth/ogmembership",
+        // url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
+        url: MANAGER_CONFIGS[mgr].BASE_URL + "/ogauth/ogusergroups",
+        // url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
             // accept: 'application/javascript',
             accept: 'application/json',
@@ -245,32 +249,32 @@ app.get("/process", (req, res, next) => {
             "<h2>TOKENS</h2>" +
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"],undefined,2) + "</pre></li>" +
+            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
             "</ul>");
     }).catch(error => {
-	if (error.response) {
-		console.log("Error status code = " + error.response.status);
-	        if (error.response.status === 401) { 
-			if (error.response.data && error.response.data.error === "invalid_token") {
-				console.log("The token is invalid.  Probably expired.");
-			}
-		}
-	
-	}
-	console.log("===== BEGIN ENDPOINT CALL ERROR =====");
+        if (error.response) {
+            console.log("Error status code = " + error.response.status);
+            if (error.response.status === 401) {
+                if (error.response.data && error.response.data.error === "invalid_token") {
+                    console.log("The token is invalid.  Probably expired.");
+                }
+            }
+
+        }
+        console.log("===== BEGIN ENDPOINT CALL ERROR =====");
         console.log(error.response);
-	console.log("===== END ENDPOINT CALL ERROR =====");
-	res.send("We got an error!<p>\n" +
-		"<pre>" + error + " </pre>\n" +
-		"<p><a href=\"/login\">LOGIN AGAIN</a></p>" +
-		"<h2>RESPONSE DATA</H2>" +
-		"<pre>" + JSON.stringify(error.response.data, undefined, 2) + "</pre>" + 
-	"<h2>TOKENS</h2>" +
+        console.log("===== END ENDPOINT CALL ERROR =====");
+        res.send("We got an error!<p>\n" +
+            "<pre>" + error + " </pre>\n" +
+            "<p><a href=\"/login\">LOGIN AGAIN</a></p>" +
+            "<h2>RESPONSE DATA</H2>" +
+            "<pre>" + JSON.stringify(error.response.data, undefined, 2) + "</pre>" +
+            "<h2>TOKENS</h2>" +
             "<ul>" +
             "<li>access_token: " + JSON.stringify(req.session["access_token"]) + "</li>" +
             "<li>csrf_token: " + JSON.stringify(req.session["csrf_token"]) + "</li>" +
             "</ul>"
-	);
+        );
 
     });
 

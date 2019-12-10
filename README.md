@@ -10,10 +10,14 @@ A Docker Stack deployed to a Docker Swarm which provides a Reverse Proxy for Sol
 
 ### Implementations used:
 - Node.js
-- ExpressJs
+- Express-js
 - Nginx
 - Redis
-- Docker (Swarm, Stacks, local Registry, Secrets)
+- Docker
+    - Swarm
+    - Stacks
+    - Registry
+    - Secrets
 - NPM
 
 ## Requirements
@@ -46,12 +50,13 @@ A Docker Stack deployed to a Docker Swarm which provides a Reverse Proxy for Sol
 
 #### Typical build / deploy development cycle
 
+- edit and deploy
 ```
-# edit and deploy
 vi express/server.js
 npm run build-express && npm run reload
-
-# check status and logs
+```
+- check status and logs
+```
 npm run sls
 docker service logs bloop_stack_express-server
 ```
