@@ -257,8 +257,40 @@ app.get("/process", (req, res, next) => {
         }
     }).then((response) => {
         const data = response.data;
-        res.send("We got a response!<p>\n" +
-            "<pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
+
+	// Update the cache with the response data.
+	    // Should this get written to solr or redis?
+
+	let newdata = [];
+	for (let i=0; i < data.length; i++) {
+		let guid = mgr + "-" + data[i].gid;
+		let access = "";
+		switch(Number(data[i].group_access)) {
+			case 0:
+				access = "public";
+				break;
+			case 1:
+				access = "private";
+				break;
+			case 2:
+				access = "uva";
+				break;
+		}
+		newdata.push({ "guid": guid, "title": data[i].title, "access": access });
+	
+	
+	
+	}
+
+
+
+
+
+
+
+        res.send("We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+            "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
+            "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
             "<h2>TOKENS</h2>" +
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
