@@ -193,16 +193,25 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 // Login path.  Initiates the OAuth ping pong match...
 app.get("/login", (req, res, next) => {
     // TODO: need validation of request parameter
-    let mgr = req.query.asset_manager || "audio-video";
-    const mgr_cfg = MANAGER_CONFIGS[mgr];
-    let error = req.query.error || "";
-    let state = {
-        asset_manager: mgr,
-        previous_error: error
+    let mgr = req.query.asset_manager || "autologin";
+
+
+    if (mgr === "autologin") {
+    	res.sendFile(__dirname + "/public/autologin.html");
+    } else {
+    	const mgr_cfg = MANAGER_CONFIGS[mgr];
+   	let error = req.query.error || "";
+    	let state = {
+   	   asset_manager: mgr,
+   	   previous_error: error
+  	}
+        // TODO: maybe we should hex-encode this?
+        // TODO: These params should be configurable!
+        let statejson = encodeURI(JSON.stringify(state));
+	let client_id = mgr_cfg.OAUTH_CLIENTID;
+	let scope = mgr_cfg.OAUTH_SCOPE.replace(/\s/,"+");
+        res.redirect(mgr_cfg.OAUTH_AUTHORIZE_URL + "?client_id=" + client_id + "&response_type=code&state=" + statejson + "&scope=" + scope);
     }
-    // TODO: maybe we should hex-encode this?
-    let statejson = encodeURI(JSON.stringify(state));
-    res.redirect(mgr_cfg.OAUTH_AUTHORIZE_URL + "?client_id=test&response_type=code&state=" + statejson + "&scope=openid+profile+email+basic");
 });
 
 // Should be authorized now
