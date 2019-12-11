@@ -216,7 +216,14 @@ app.get("/process", (req, res, next) => {
         console.dir(req.session.access_token);
 
         // prevent error loop?
-        res.redirect("/login?asset_mgr=" + mgr + "&error=no_access_token");
+
+        if (req.query.error === "no_access_token") {
+            const errmsg = "Couldn't obtain an access token!";
+            console.error(errmsg);
+            next(errmsg);
+        }
+
+        res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token");
         return;
     }
 
