@@ -26,6 +26,10 @@ In real life, you would adjust many of these configurations, and configure the p
 - Make sure to enable these modules:
     - `Services Views`
     - `Rest Server`
+    - `Chaos Tools`
+    
+- Make sure that Chaos Tools permissions are correct:
+    - Make that `Use CTools importer` permission is checked for Admin
 
 - Import the service 
     - Structure >> Services >> Import
