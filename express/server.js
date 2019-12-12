@@ -294,7 +294,7 @@ app.get("/process", (req, res, next) => {
         }
 
 
-        res.send("<html><header><title>LOADY LOAD" + mgr + "</title></header><body>"+
+        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>"+
             "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
             "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
             "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
@@ -317,16 +317,17 @@ app.get("/process", (req, res, next) => {
         console.log("===== BEGIN ENDPOINT CALL ERROR =====");
         console.log(error.response);
         console.log("===== END ENDPOINT CALL ERROR =====");
-        res.send("We got an error!<p>\n" +
+        res.send("<html><header><title>error:" + mgr + "</title></header><body>" +
+            "We got an error!<p>\n" +
             "<pre>" + error + " </pre>\n" +
             "<p><a href=\"/login\">LOGIN AGAIN</a></p>" +
             "<h2>RESPONSE DATA</H2>" +
             "<pre>" + JSON.stringify(error.response.data, undefined, 2) + "</pre>" +
             "<h2>TOKENS</h2>" +
             "<ul>" +
-            "<li>access_token: " + JSON.stringify(req.session["access_token"]) + "</li>" +
-            "<li>csrf_token: " + JSON.stringify(req.session["csrf_token"]) + "</li>" +
-            "</ul>"
+            "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+            "</ul></body></html>"
         );
 
     });
