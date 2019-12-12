@@ -9,6 +9,7 @@
         $('iframe').on('load', function (x) {
                 console.dir(x.target);
                 $('#log').append("<li> WOOT: " + x.target.name + "</li>");
+                $('#log').append("<li> POOT: " + $(x.target).contents().attr('title') + "</li>");
             }
         );
     });
