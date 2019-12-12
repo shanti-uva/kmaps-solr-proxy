@@ -1,8 +1,15 @@
-;(function($, window, document, undefined) {
-    // this doesn't work because of iframe event issues.
+;(function ($, window, document, undefined) {
 
-    $('iframe').on('click', function (x) {
-        $('iframe.focused').removeClass('focused');
-        $(this).addClass('focused');
+    $(function () {
+        $('iframe').on('click', function (x) {
+            $('iframe.focused').removeClass('focused');
+            $(this).addClass('focused');
+        });
+
+        $('iframe').on('load', function (x) {
+                console.dir(x.target);
+                $('#log').append("<li> WOOT: " + x.target.name + "</li>");
+            }
+        );
     });
 })(jQuery, window, document);

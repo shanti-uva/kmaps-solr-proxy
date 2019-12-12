@@ -23,8 +23,8 @@ const app = express();
 
 // Session settings
 //
-const SESSION_SECRET = (process.env.SESSION_SECRET)?process.env.SESSION_SECRET:'redissessionsecretshush';
-const SESSION_COOKIE = (process.env.SESSION_COOKIE)?process.env.SESSION_COOKIE:'solrProxySession';
+const SESSION_SECRET = (process.env.SESSION_SECRET) ? process.env.SESSION_SECRET : 'redissessionsecretshush';
+const SESSION_COOKIE = (process.env.SESSION_COOKIE) ? process.env.SESSION_COOKIE : 'solrProxySession';
 
 // OAuth client configs 
 // We'll use the same client id and client secret for all OAuth servers/providers
@@ -197,19 +197,19 @@ app.get("/login", (req, res, next) => {
 
 
     if (mgr === "autologin") {
-    	res.sendFile(__dirname + "/public/autologin.html");
+        res.sendFile(__dirname + "/public/autologin.html");
     } else {
-    	const mgr_cfg = MANAGER_CONFIGS[mgr];
-   	let error = req.query.error || "";
-    	let state = {
-   	   asset_manager: mgr,
-   	   previous_error: error
-  	}
+        const mgr_cfg = MANAGER_CONFIGS[mgr];
+        let error = req.query.error || "";
+        let state = {
+            asset_manager: mgr,
+            previous_error: error
+        }
         // TODO: maybe we should hex-encode this?
         // TODO: These params should be configurable!
         let statejson = encodeURI(JSON.stringify(state));
-	let client_id = mgr_cfg.OAUTH_CLIENTID;
-	let scope = mgr_cfg.OAUTH_SCOPE.replace(/\s/,"+");
+        let client_id = mgr_cfg.OAUTH_CLIENTID;
+        let scope = mgr_cfg.OAUTH_SCOPE.replace(/\s/, "+");
         res.redirect(mgr_cfg.OAUTH_AUTHORIZE_URL + "?client_id=" + client_id + "&response_type=code&state=" + statejson + "&scope=" + scope);
     }
 });
@@ -256,46 +256,54 @@ app.get("/process", (req, res, next) => {
             "X-CSRF-Token": xcsrf
         }
     }).then((response) => {
+
+        // TODO: Collect the data and record it in Solr or in Redis
+        // We'll need to handle:
+        //  Asynchronous refreshes of this data
+        //  Some sense of the freshness of this data
+        //  How will we know when the data has been updated?
+        //  Use of refresh token
+        // What will the solr proxy need to know to filter the solr query?
+        // How much data should be in solr / just in redis / session
+        // How do we handle non-logged-in cases?
+        // how will we know the differences?
+        // how ill know if that status changes?
+        // use redis? for asynchronous notification?
+
         const data = response.data;
-
-	// Update the cache with the response data.
-	    // Should this get written to solr or redis?
-
-	let newdata = [];
-	for (let i=0; i < data.length; i++) {
-		let guid = mgr + "-" + data[i].gid;
-		let access = "";
-		switch(Number(data[i].group_access)) {
-			case 0:
-				access = "public";
-				break;
-			case 1:
-				access = "private";
-				break;
-			case 2:
-				access = "uva";
-				break;
-		}
-		newdata.push({ "guid": guid, "title": data[i].title, "access": access });
-	
-	
-	
-	}
+        let newdata = [];
+        for (let i = 0; i < data.length; i++) {
+            let guid = mgr + "-" + data[i].gid;
+            let access = "";
+            switch (Number(data[i].group_access)) {
+                case 0:
+                    access = "public";
+                    break;
+                case 1:
+                    access = "private";
+                    break;
+                case 2:
+                    access = "uva";
+                    break;
+            }
+            newdata.push({
+                "guid": guid,
+                "title": data[i].title,
+                "access": access
+            });
+        }
 
 
-
-
-
-
-
-        res.send("We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+        res.send("<html><header><title>LOADY LOAD" + mgr + "</title></header><body>"+
+            "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
             "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
             "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
             "<h2>TOKENS</h2>" +
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
             "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-            "</ul>");
+            "</ul></body></html>"
+        );
     }).catch(error => {
         if (error.response) {
             console.log("Error status code = " + error.response.status);
