@@ -6,10 +6,13 @@
             $(this).addClass('focused');
         });
 
+        // Implement iframe messaging to collect the login status.
         $('iframe').on('load', function (x) {
-                console.dir(x.target);
-                $('#log').append("<li> WOOT: " + x.target.name + "</li>");
-                $('#log').append("<li> POOT: " + $(x.target).contents().attr('title') + "</li>");
+                // console.dir(x.target);
+                let msg = $(x.target).contents().attr('title');
+                let service = x.target.name;
+                // logging for dev debug purposes
+                $('#' + service + '_log').html(service+ ": " + msg);
             }
         );
     });
