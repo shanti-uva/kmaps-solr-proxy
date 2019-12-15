@@ -4,3 +4,19 @@ iframe {
     resize: both;
     overflow: auto;
 }
+
+div#status {
+	float: left;
+}
+
+div#auth {
+	float: right;
+}
+
+div#frames {
+	float: none;
+}
+
+div.norm {
+	width: 80em;
+}

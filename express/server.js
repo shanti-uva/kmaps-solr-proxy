@@ -97,13 +97,13 @@ app.use(
         resave: false,
         saveUninitialized: true,
         cookie: {secure: false},
-        store: new redisStore({
-            host: REDIS_URL,
-            port: REDIS_PORT,
-            password: REDIS_PASS,
-            client: redisClient,
-            ttl: REDIS_TTL
-        })
+        // store: new redisStore({
+            // host: REDIS_URL,
+            // port: REDIS_PORT,
+            // password: REDIS_PASS,
+            // client: redisClient,
+            // ttl: REDIS_TTL
+        //})
     }));
 
 // Default Static Route
@@ -121,11 +121,21 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     console.log("We got state = " + JSON.stringify(state, undefined, 2));
 
     if (!req.session.csrf_token) {
-        req.session.csrf_token = {};
+	console.log ( "init csrf_token: " + JSON.stringify(state) );
+        req.session.csrf_token = { init:state.asset_manager };
+	req.session.save();    
     }
     if (!req.session.access_token) {
-        req.session.access_token = {};
+	console.log ( "init access_token: " + JSON.stringify(state) );
+        req.session.access_token = { init:state.asset_manager };
+	req.session.save();    
     }
+    if (!req.session.memberships) {
+	console.log ( "init membership: " + JSON.stringify(state) );
+	req.session.memberships = { init:state.asset_manager };
+	req.session.save();    
+    }
+
     const mgr = state.asset_manager || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
 
@@ -137,12 +147,16 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         {withCredentials: true}
     );
 
-    let csrf = "";
+    let csrf = "x";
     try {
         let resp = await client.get(mgr_cfg.CSRF_URL);
+	console.log("getting csrf");
         csrf = resp.data;
         console.log("got CSRF for " + mgr + " = " + csrf);
-        req.session["csrf_token"][mgr] = csrf;
+	await req.session.reload( () => {
+        	req.session["csrf_token"][mgr] = csrf;
+		req.session.save();
+	} );
     } catch (err) {
         const errorMsg = "Couldn't get CSRF token from " + mgr_cfg.CSRF_URL + " Error: " + err;
         console.error(errorMsg, err);
@@ -163,23 +177,27 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         {
             headers: {
                 "accept": 'application/json',
-                "x-csrf-token": req.session["csrf_token"][mgr]
+                "x-csrf-token": csrf
             }
         };
     try {
-        console.log("BEFORE THE POST");
+        console.log("BEFORE THE POST " + mgr);
         let response = await client.post(mgr_cfg.OAUTH_TOKEN_URL,
             request_data,
             request_config
         )
-        console.log("AFTER THE POST");
+        console.log("AFTER THE POST " + mgr);
         let token_json = response.data;
         console.log("GOT token = " + token_json);
         console.dir(token_json);
-        req.session["access_token"][mgr] = token_json;
+        req.session.reload( () => {
+        	req.session["access_token"][mgr] = token_json;
+		req.session.save();    
+	});
         res.redirect('/process?asset_mgr=' + mgr);
 
     } catch (err) {
+	console.log("ERROR retrieving OAuth token: " + err);
         let debug = JSON.stringify(err.response.data, undefined, 2) + "\n" + JSON.stringify(request_data, undefined, 2) + "\n" + JSON.stringify(request_config, undefined, 2);
         const errorMsg = "Couldn't get OAuth2 token from " + mgr_cfg.OAUTH_TOKEN_URL + " Error: " + err.message;
         console.error(errorMsg);
@@ -253,7 +271,7 @@ app.get("/process", (req, res, next) => {
             // accept: 'application/javascript',
             accept: 'application/json',
             Authorization: "Bearer " + access,
-            "X-CSRF-Token": xcsrf
+            // "X-CSRF-Token": xcsrf
         }
     }).then((response) => {
 
@@ -292,7 +310,10 @@ app.get("/process", (req, res, next) => {
                 "access": access
             });
         }
-
+	req.session.reload(() => {
+		req.session.memberships[mgr]= newdata;    
+		req.session.save();
+	});
 
         res.send("<html><header><title>loaded:" + mgr + "</title></header><body>"+
             "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
@@ -315,14 +336,14 @@ app.get("/process", (req, res, next) => {
 
         }
         console.log("===== BEGIN ENDPOINT CALL ERROR =====");
-        console.log(error.response);
+        console.log(error);
         console.log("===== END ENDPOINT CALL ERROR =====");
         res.send("<html><header><title>error:" + mgr + "</title></header><body>" +
             "We got an error!<p>\n" +
             "<pre>" + error + " </pre>\n" +
-            "<p><a href=\"/login\">LOGIN AGAIN</a></p>" +
+            "<p><a href=\"/login?asset_manager=" + mgr + "\">LOGIN AGAIN</a></p>" +
             "<h2>RESPONSE DATA</H2>" +
-            "<pre>" + JSON.stringify(error.response.data, undefined, 2) + "</pre>" +
+            // "<pre>" + (error.response)?JSON.stringify(error.response.data, undefined, 2):"No response" + "</pre>" +
             "<h2>TOKENS</h2>" +
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
@@ -335,6 +356,21 @@ app.get("/process", (req, res, next) => {
     console.log("PROCESSED: session");
     // console.dir(req.session);
 });
+
+app.get("/status\.?(json|html)?", (req, res, next) => {
+       let mode = req.params[0]||"html";
+       let status = req.session;
+       if (mode == "json") {
+               res.setHeader("Content-Type", 'application/json');
+               res.send(JSON.stringify(status, undefined, 2));
+       } else if (mode == "html") {
+               res.setHeader("Content-Type", 'text/html');
+               res.send("<html><head><title>Status</title></head><body>" +
+                       "<div>Try <a href='status.json'>JSON</a> mode</div>" +
+                       "emptyness</body></html>");
+       }
+});
+ // So
 
 // Solr Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path
