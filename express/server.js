@@ -98,11 +98,11 @@ app.use(
         saveUninitialized: true,
         cookie: {secure: false},
         // store: new redisStore({
-            // host: REDIS_URL,
-            // port: REDIS_PORT,
-            // password: REDIS_PASS,
-            // client: redisClient,
-            // ttl: REDIS_TTL
+        // host: REDIS_URL,
+        // port: REDIS_PORT,
+        // password: REDIS_PASS,
+        // client: redisClient,
+        // ttl: REDIS_TTL
         //})
     }));
 
@@ -113,35 +113,39 @@ app.get('/', function (req, res) {
 
 // OAuth Redirect Route - OAuth Server Authorize request should redirect here.
 app.get('/oauth2/redirect', async (req, res, next) => {
-    console.log("==================================");
-    console.dir(req.query);
-    console.log("==================================");
+    const DEBUG = false;
+    if (DEBUG) {
+        console.log("==================================");
+        console.dir(req.query);
+        console.log("==================================");
+    }
     const requestToken = req.query.code
     const state = JSON.parse(req.query.state);
-    console.log("We got state = " + JSON.stringify(state, undefined, 2));
+    if (DEBUG) console.log("We got state = " + JSON.stringify(state, undefined, 2));
 
     if (!req.session.csrf_token) {
-	console.log ( "init csrf_token: " + JSON.stringify(state) );
-        req.session.csrf_token = { init:state.asset_manager };
-	req.session.save();    
+        if (DEBUG) console.log("init csrf_token: " + JSON.stringify(state));
+        req.session.csrf_token = {init: state.asset_manager};
+        req.session.save();
     }
     if (!req.session.access_token) {
-	console.log ( "init access_token: " + JSON.stringify(state) );
-        req.session.access_token = { init:state.asset_manager };
-	req.session.save();    
+        if (DEBUG) console.log("init access_token: " + JSON.stringify(state));
+        req.session.access_token = {init: state.asset_manager};
+        req.session.save();
     }
     if (!req.session.memberships) {
-	console.log ( "init membership: " + JSON.stringify(state) );
-	req.session.memberships = { init:state.asset_manager };
-	req.session.save();    
+        if (DEBUG) console.log("init membership: " + JSON.stringify(state));
+        req.session.memberships = {init: state.asset_manager};
+        req.session.save();
     }
 
     const mgr = state.asset_manager || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
 
-    console.log("USING mgr = " + mgr);
-    console.log("USING mgr_cfg = " + JSON.stringify(mgr_cfg, undefined, 2));
-
+    if (DEBUG) {
+        console.log("USING mgr = " + mgr);
+        console.log("USING mgr_cfg = " + JSON.stringify(mgr_cfg, undefined, 2));
+    }
 
     let client = axios.create(
         {withCredentials: true}
@@ -150,13 +154,13 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     let csrf = "x";
     try {
         let resp = await client.get(mgr_cfg.CSRF_URL);
-	console.log("getting csrf");
+        console.log("getting csrf");
         csrf = resp.data;
         console.log("got CSRF for " + mgr + " = " + csrf);
-	await req.session.reload( () => {
-        	req.session["csrf_token"][mgr] = csrf;
-		req.session.save();
-	} );
+        await req.session.reload(() => {
+            req.session["csrf_token"][mgr] = csrf;
+            req.session.save();
+        });
     } catch (err) {
         const errorMsg = "Couldn't get CSRF token from " + mgr_cfg.CSRF_URL + " Error: " + err;
         console.error(errorMsg, err);
@@ -190,14 +194,14 @@ app.get('/oauth2/redirect', async (req, res, next) => {
         let token_json = response.data;
         console.log("GOT token = " + token_json);
         console.dir(token_json);
-        req.session.reload( () => {
-        	req.session["access_token"][mgr] = token_json;
-		req.session.save();    
-	});
+        req.session.reload(() => {
+            req.session["access_token"][mgr] = token_json;
+            req.session.save();
+        });
         res.redirect('/process?asset_mgr=' + mgr);
 
     } catch (err) {
-	console.log("ERROR retrieving OAuth token: " + err);
+        console.log("ERROR retrieving OAuth token: " + err);
         let debug = JSON.stringify(err.response.data, undefined, 2) + "\n" + JSON.stringify(request_data, undefined, 2) + "\n" + JSON.stringify(request_config, undefined, 2);
         const errorMsg = "Couldn't get OAuth2 token from " + mgr_cfg.OAUTH_TOKEN_URL + " Error: " + err.message;
         console.error(errorMsg);
@@ -212,7 +216,6 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 app.get("/login", (req, res, next) => {
     // TODO: need validation of request parameter
     let mgr = req.query.asset_manager || "autologin";
-
 
     if (mgr === "autologin") {
         res.sendFile(__dirname + "/public/autologin.html");
@@ -238,12 +241,12 @@ app.get("/process", (req, res, next) => {
     const mgr = req.query.asset_mgr || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
 
+    // no access_token, so try to login
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
         console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
         console.dir(req.session.access_token);
 
         // prevent error loop?
-
         if (req.query.error === "no_access_token") {
             const errmsg = "Couldn't obtain an access token!";
             console.error(errmsg);
@@ -310,12 +313,19 @@ app.get("/process", (req, res, next) => {
                 "access": access
             });
         }
-	req.session.reload(() => {
-		req.session.memberships[mgr]= newdata;    
-		req.session.save();
-	});
+        req.session.reload(() => {
+            req.session.memberships[mgr] = newdata;
+            req.session.save(() => {
 
-        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>"+
+                // Check that all memberships are available...
+                console.log("++++++++++++++++++++++++++++++");
+                console.dir(req.session.memberships);
+                console.log("++++++++++++++++++++++++++++++");
+
+            });
+        });
+
+        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
             "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
             "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
             "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
@@ -358,19 +368,19 @@ app.get("/process", (req, res, next) => {
 });
 
 app.get("/status\.?(json|html)?", (req, res, next) => {
-       let mode = req.params[0]||"html";
-       let status = req.session;
-       if (mode == "json") {
-               res.setHeader("Content-Type", 'application/json');
-               res.send(JSON.stringify(status, undefined, 2));
-       } else if (mode == "html") {
-               res.setHeader("Content-Type", 'text/html');
-               res.send("<html><head><title>Status</title></head><body>" +
-                       "<div>Try <a href='status.json'>JSON</a> mode</div>" +
-                       "emptyness</body></html>");
-       }
+    let mode = req.params[0] || "html";
+    let status = req.session;
+    if (mode == "json") {
+        res.setHeader("Content-Type", 'application/json');
+        res.send(JSON.stringify(status, undefined, 2));
+    } else if (mode == "html") {
+        res.setHeader("Content-Type", 'text/html');
+        res.send("<html><head><title>Status</title></head><body>" +
+            "<div>Try <a href='status.json'>JSON</a> mode</div>" +
+            "emptyness</body></html>");
+    }
 });
- // So
+// So
 
 // Solr Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path

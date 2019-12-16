@@ -1,5 +1,5 @@
 version: '3.7'
- 
+
 services:
   nginx-server:
     container_name: nginx-server
@@ -22,9 +22,9 @@ services:
     build:
       context: express
       args:
-       - dir=/opt/example.com/
-       - port=3000
-       - env=dev
+        - dir=/opt/example.com/
+        - port=3000
+        - env=dev
     image: 127.0.0.1:5000/express-server
     depends_on:
       - nginx-server
@@ -47,8 +47,8 @@ services:
     command: redis-server /usr/local/etc/redis/redis.conf
     expose:
       - 6379
-#    depends_on:
-#      - redis-fix
+    #    depends_on:
+    #      - redis-fix
     sysctls:
       - net.core.somaxconn=1024
 

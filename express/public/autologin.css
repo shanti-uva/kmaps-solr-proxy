@@ -6,17 +6,17 @@ iframe {
 }
 
 div#status {
-	float: left;
+    float: left;
 }
 
 div#auth {
-	float: right;
+    float: right;
 }
 
 div#frames {
-	float: none;
+    float: none;
 }
 
 div.norm {
-	width: 80em;
+    width: 80em;
 }

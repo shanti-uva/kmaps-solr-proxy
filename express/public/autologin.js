@@ -6,13 +6,15 @@
             $(this).addClass('focused');
         });
 
-        // Implement iframe messaging to collect the login status.
+        // Implement primitive iframe messaging to collect the login status.
         $('iframe').on('load', function (x) {
                 // console.dir(x.target);
                 let msg = $(x.target).contents().attr('title');
                 let service = x.target.name;
                 // logging for dev debug purposes
-                $('#' + service + '_log').html(service+ ": " + msg);
+                $('#' + service + '_log').html(service + ": " + msg);
+                $(x.target).addClass("loaded");
+                $('#log').append("<li>" + $('iframe.loaded').length + "</li>");
             }
         );
     });
