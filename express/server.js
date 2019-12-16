@@ -121,6 +121,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     }
     const requestToken = req.query.code
     const state = JSON.parse(req.query.state);
+    let debug_request = state.debug;
     if (DEBUG) console.log("We got state = " + JSON.stringify(state, undefined, 2));
 
     if (!req.session.csrf_token) {
@@ -198,7 +199,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
             req.session["access_token"][mgr] = token_json;
             req.session.save();
         });
-        res.redirect('/process?asset_mgr=' + mgr);
+        res.redirect('/process?asset_mgr=' + mgr + (debug_request)?"&debug=true":"");
 
     } catch (err) {
         console.log("ERROR retrieving OAuth token: " + err);
@@ -216,15 +217,23 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 app.get("/login", (req, res, next) => {
     // TODO: need validation of request parameter
     let mgr = req.query.asset_manager || "autologin";
+    let debug_request = false;
+    if (req.query.debug) {
+        debug_request = true;
+    } else if (req.session.debug === "true") {
+        debug_request = true;
+    }
 
     if (mgr === "autologin") {
+        req.session.debug = debug_request;
         res.sendFile(__dirname + "/public/autologin.html");
     } else {
         const mgr_cfg = MANAGER_CONFIGS[mgr];
         let error = req.query.error || "";
         let state = {
             asset_manager: mgr,
-            previous_error: error
+            previous_error: error,
+            debug: debug_request
         }
         // TODO: maybe we should hex-encode this?
         // TODO: These params should be configurable!
@@ -240,6 +249,7 @@ app.get("/process", (req, res, next) => {
     // Check the session
     const mgr = req.query.asset_mgr || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
+    let debug_request = (req.query.debug)?true:false;
 
     // no access_token, so try to login
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
@@ -253,7 +263,7 @@ app.get("/process", (req, res, next) => {
             next(errmsg);
         }
 
-        res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token");
+        res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token" + (debug_request)?"&debug=true":"");
         return;
     }
 
@@ -345,16 +355,20 @@ app.get("/process", (req, res, next) => {
             });
         });
 
-        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
-            "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
-            "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
-            "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
-            "<h2>TOKENS</h2>" +
-            "<ul>" +
-            "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-            "</ul></body></html>"
-        );
+        if (debug_request) {
+            res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
+                "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+                "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
+                "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
+                "<h2>TOKENS</h2>" +
+                "<ul>" +
+                "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+                "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+                "</ul></body></html>"
+            );
+        } else {
+            res.redirect('/solr');
+        }
     }).catch(error => {
         if (error.response) {
             console.log("Error status code = " + error.response.status);
