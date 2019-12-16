@@ -199,7 +199,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
             req.session["access_token"][mgr] = token_json;
             req.session.save();
         });
-        res.redirect('/process?asset_mgr=' + mgr + (debug_request)?"&debug=true":"");
+        res.redirect('/process?asset_mgr=' + mgr + ((debug_request)?"&debug=true":""));
 
     } catch (err) {
         console.log("ERROR retrieving OAuth token: " + err);
@@ -219,8 +219,6 @@ app.get("/login", (req, res, next) => {
     let mgr = req.query.asset_manager || "autologin";
     let debug_request = false;
     if (req.query.debug) {
-        debug_request = true;
-    } else if (req.session.debug === "true") {
         debug_request = true;
     }
 
@@ -249,8 +247,11 @@ app.get("/process", (req, res, next) => {
     // Check the session
     const mgr = req.query.asset_mgr || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
-    let debug_request = (req.query.debug)?true:false;
-
+    let debug_request = false;
+    if (req.session.debug) {
+	    debug_request = true;
+	    delete req.session.debug_request;
+    }
     // no access_token, so try to login
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
         console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
@@ -355,21 +356,17 @@ app.get("/process", (req, res, next) => {
             });
         });
 
-        if (debug_request) {
-            res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
-                "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
-                "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
-                "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
-                "<h2>TOKENS</h2>" +
-                "<ul>" +
-                "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-                "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-                "</ul></body></html>"
-            );
-        } else {
-            res.redirect('/solr');
-        }
-    }).catch(error => {
+        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
+           "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+           "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
+           "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
+           "<h2>TOKENS</h2>" +
+           "<ul>" +
+           "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+           "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+           "<li>debug request = " + debug_request + "</li>" +
+           "</ul></body></html>"
+        );
         if (error.response) {
             console.log("Error status code = " + error.response.status);
             if (error.response.status === 401) {
@@ -392,6 +389,7 @@ app.get("/process", (req, res, next) => {
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
             "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+           "<li>debug request = " + debug_request + "</li>" +
             "</ul></body></html>"
         );
 
