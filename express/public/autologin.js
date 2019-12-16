@@ -16,8 +16,8 @@
                 $(x.target).addClass("loaded");
                 $('#log').append("<li>" + $('iframe.loaded').length + "</li>");
                 var groups = "";
-                if ($('iframes.loaded').length === 5) {
-                    $('auth').html("Groups are all loaded!");
+                if ($('iframe.loaded').length === 5) {
+                    $('#auth').html("Groups are all loaded!");
                 }
             }
         );
