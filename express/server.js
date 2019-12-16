@@ -353,7 +353,9 @@ app.get("/process", (req, res, next) => {
                     req.session.acls = acls;
                     req.session.save();
                 }
-                var debugBody = "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+                var debugBody = "";
+		if (debug_request) {
+		    debugBody = "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
                     "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
                     "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
                     "<h2>TOKENS</h2>" +
@@ -362,11 +364,12 @@ app.get("/process", (req, res, next) => {
                     "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
                     "<li>debug request = " + debug_request + "</li>" +
                     "</ul>";
+		}
                 res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
+                    debugBody +
                     "<pre>" +
                     JSON.stringify(req.session.memberships, undefined, 2) +
                     "</pre>" +
-                    debugBody +
                     "</body></html>"
                 );
             });
