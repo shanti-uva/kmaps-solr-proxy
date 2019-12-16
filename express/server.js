@@ -125,17 +125,17 @@ app.get('/oauth2/redirect', async (req, res, next) => {
 
     if (!req.session.csrf_token) {
         if (DEBUG) console.log("init csrf_token: " + JSON.stringify(state));
-        req.session.csrf_token = {init: state.asset_manager};
+        req.session.csrf_token = {};
         req.session.save();
     }
     if (!req.session.access_token) {
         if (DEBUG) console.log("init access_token: " + JSON.stringify(state));
-        req.session.access_token = {init: state.asset_manager};
+        req.session.access_token = {};
         req.session.save();
     }
     if (!req.session.memberships) {
         if (DEBUG) console.log("init membership: " + JSON.stringify(state));
-        req.session.memberships = {init: state.asset_manager};
+        req.session.memberships = {};
         req.session.save();
     }
 
@@ -321,7 +321,27 @@ app.get("/process", (req, res, next) => {
                 console.log("++++++++++++++++++++++++++++++");
                 console.dir(req.session.memberships);
                 console.log("++++++++++++++++++++++++++++++");
+		// memberships, access_tokens should match and should number 5.
+		
+			if (Object.keys(req.session.memberships).length === 5) {
+				console.log("WE GOT ALL 5 MEMBERSHIPS: " + JSON.stringify(req.session.memberships, undefined, 2));
+				// write the acl's to the session
+				
+				let acls = [];
+				Object.keys(req.session.memberships).forEach ( (service) => {
+					console.log ("SERVICE: " + service);
+					req.session.memberships[service].forEach ( (membership) => {
+						let memb = membership.guid + ":" + membership.access;
+						console.log("MEMBERSHIP: " + memb);
+						acls.push(memb);
+					});
+				});
 
+				console.log("Got " + acls.length + " memberships");
+				console.dir(acls);
+				req.session.acls = acls;
+				req.session.save();
+			} 
             });
         });
 
