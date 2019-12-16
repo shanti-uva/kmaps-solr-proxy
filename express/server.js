@@ -199,7 +199,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
             req.session["access_token"][mgr] = token_json;
             req.session.save();
         });
-        res.redirect('/process?asset_mgr=' + mgr + ((debug_request)?"&debug=true":""));
+        res.redirect('/process?asset_mgr=' + mgr + ((debug_request) ? "&debug=true" : ""));
 
     } catch (err) {
         console.log("ERROR retrieving OAuth token: " + err);
@@ -249,8 +249,8 @@ app.get("/process", (req, res, next) => {
     const mgr_cfg = MANAGER_CONFIGS[mgr];
     let debug_request = false;
     if (req.session.debug) {
-	    debug_request = true;
-	    delete req.session.debug_request;
+        debug_request = true;
+        delete req.session.debug_request;
     }
     // no access_token, so try to login
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
@@ -264,7 +264,7 @@ app.get("/process", (req, res, next) => {
             next(errmsg);
         }
 
-        res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token" + (debug_request)?"&debug=true":"");
+        res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token" + (debug_request) ? "&debug=true" : "");
         return;
     }
 
@@ -332,41 +332,46 @@ app.get("/process", (req, res, next) => {
                 console.log("++++++++++++++++++++++++++++++");
                 console.dir(req.session.memberships);
                 console.log("++++++++++++++++++++++++++++++");
-		// memberships, access_tokens should match and should number 5.
-		
-			if (Object.keys(req.session.memberships).length === 5) {
-				console.log("WE GOT ALL 5 MEMBERSHIPS: " + JSON.stringify(req.session.memberships, undefined, 2));
-				// write the acl's to the session
-				
-				let acls = [];
-				Object.keys(req.session.memberships).forEach ( (service) => {
-					console.log ("SERVICE: " + service);
-					req.session.memberships[service].forEach ( (membership) => {
-						let memb = membership.guid + ":" + membership.access;
-						console.log("MEMBERSHIP: " + memb);
-						acls.push(memb);
-					});
-				});
+                // memberships, access_tokens should match and should number 5.
 
-				console.log("Got " + acls.length + " memberships");
-				console.dir(acls);
-				req.session.acls = acls;
-				req.session.save();
-			} 
+                if (Object.keys(req.session.memberships).length === 5) {
+                    console.log("WE GOT ALL 5 MEMBERSHIPS: " + JSON.stringify(req.session.memberships, undefined, 2));
+                    // write the acl's to the session
+
+                    let acls = [];
+                    Object.keys(req.session.memberships).forEach((service) => {
+                        console.log("SERVICE: " + service);
+                        req.session.memberships[service].forEach((membership) => {
+                            let memb = membership.guid + ":" + membership.access;
+                            console.log("MEMBERSHIP: " + memb);
+                            acls.push(memb);
+                        });
+                    });
+
+                    console.log("Got " + acls.length + " memberships");
+                    console.dir(acls);
+                    req.session.acls = acls;
+                    req.session.save();
+                }
+                var debugBody = "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+                    "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
+                    "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
+                    "<h2>TOKENS</h2>" +
+                    "<ul>" +
+                    "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+                    "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+                    "<li>debug request = " + debug_request + "</li>" +
+                    "</ul>";
+                res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
+                    "<pre>" +
+                    JSON.stringify(req.session.memberships, undefined, 2) +
+                    "</pre>" +
+                    debugBody +
+                    "</body></html>"
+                );
             });
         });
-
-        res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
-           "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
-           "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
-           "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
-           "<h2>TOKENS</h2>" +
-           "<ul>" +
-           "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-           "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-           "<li>debug request = " + debug_request + "</li>" +
-           "</ul></body></html>"
-        );
+    }).catch(error => {
         if (error.response) {
             console.log("Error status code = " + error.response.status);
             if (error.response.status === 401) {
@@ -389,7 +394,7 @@ app.get("/process", (req, res, next) => {
             "<ul>" +
             "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
             "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-           "<li>debug request = " + debug_request + "</li>" +
+            "<li>debug request = " + debug_request + "</li>" +
             "</ul></body></html>"
         );
 
