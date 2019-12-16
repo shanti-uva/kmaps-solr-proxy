@@ -347,7 +347,6 @@ app.get("/process", (req, res, next) => {
                             acls.push(memb);
                         });
                     });
-
                     console.log("Got " + acls.length + " memberships");
                     console.dir(acls);
                     req.session.acls = acls;
