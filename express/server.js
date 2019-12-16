@@ -338,18 +338,18 @@ app.get("/process", (req, res, next) => {
                     console.log("WE GOT ALL 5 MEMBERSHIPS: " + JSON.stringify(req.session.memberships, undefined, 2));
                     // write the acl's to the session
 
-                    let acls = [];
+                    let acl = [];
                     Object.keys(req.session.memberships).forEach((service) => {
                         console.log("SERVICE: " + service);
                         req.session.memberships[service].forEach((membership) => {
                             let memb = membership.guid + ":" + membership.access;
                             console.log("MEMBERSHIP: " + memb);
-                            acls.push(memb);
+                            acl.push(memb);
                         });
                     });
-                    console.log("Got " + acls.length + " memberships");
-                    console.dir(acls);
-                    req.session.acls = acls;
+                    console.log("Got " + acl.length + " memberships");
+                    console.dir(acl);
+                    req.session.acl = acl;
                     req.session.save();
                 }
                 var debugBody = "";
@@ -416,10 +416,27 @@ app.get("/status\.?(json|html)?", (req, res, next) => {
         res.setHeader("Content-Type", 'text/html');
         res.send("<html><head><title>Status</title></head><body>" +
             "<div>Try <a href='status.json'>JSON</a> mode</div>" +
-            "emptyness</body></html>");
+            "<pre>" +
+            JSON.stringify(status, undefined, 2) +
+            "</pre></body></html>");
     }
 });
-// So
+
+app.get("/acl\.?(json|html)?", (req, res, next) => {
+    let mode = req.params[0] || "json";
+    let acl = req.session.acl;
+    if (mode == "json") {
+        res.setHeader("Content-Type", 'application/json');
+        res.send(JSON.stringify(acl, undefined, 2));
+    } else if (mode == "html") {
+        res.setHeader("Content-Type", 'text/html');
+        res.send("<html><head><title>Status</title></head><body>" +
+            "<div>Try <a href='status.json'>JSON</a> mode</div>" +
+            "<pre>" +
+            JSON.stringify(acl, undefined, 2) +
+            "</pre></body></html>");
+    }
+});
 
 // Solr Proxy
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path
