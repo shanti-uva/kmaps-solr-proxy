@@ -424,7 +424,7 @@ app.get("/status\.?(json|html)?", (req, res, next) => {
 
 app.get("/acl\.?(json|html)?", (req, res, next) => {
     let mode = req.params[0] || "json";
-    let acl = req.session.acl;
+    let acl = req.session.acl||[];
     if (mode == "json") {
         res.setHeader("Content-Type", 'application/json');
         res.send(JSON.stringify(acl, undefined, 2));
