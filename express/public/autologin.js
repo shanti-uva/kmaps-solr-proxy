@@ -18,6 +18,7 @@
                 var groups = "";
                 if ($('iframe.loaded').length === 5) {
                     $('#auth').html("Groups are all loaded!");
+                    console.dir($('iframe.loaded'));
                 }
             }
         );
