@@ -1,6 +1,6 @@
 iframe {
-    height: 300px;
-    width: 80em;
+    height: 1rem;
+    width: 1rem;
     resize: both;
     overflow: auto;
 }
