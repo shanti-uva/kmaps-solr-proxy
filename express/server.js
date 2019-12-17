@@ -364,7 +364,9 @@ app.get("/process", (req, res, next) => {
                     "<li>debug request = " + debug_request + "</li>" +
                     "</ul>";
 		}
-                res.send("<html><header><title>loaded:" + mgr + "</title></header><body>" +
+                res.send("<html><header><title>loaded:" + mgr + "</title>" +
+                    "<link href='process.css' rel='stylesheet' type='text/css'>" +
+                    "</header><body class='success'>" +
                     debugBody +
                     "<pre>" +
                     JSON.stringify(req.session.memberships, undefined, 2) +
@@ -386,7 +388,10 @@ app.get("/process", (req, res, next) => {
         console.log("===== BEGIN ENDPOINT CALL ERROR =====");
         console.log(error);
         console.log("===== END ENDPOINT CALL ERROR =====");
-        res.send("<html><header><title>error:" + mgr + "</title></header><body>" +
+        res.send("<html>" +
+            "<header><title>error:" + mgr + "</title>" +
+            "<link href='process.css' rel='stylesheet' type='text/css'>" +
+            "</header><body class='error'>" +
             "We got an error!<p>\n" +
             "<pre>" + error + " </pre>\n" +
             "<p><a href=\"/login?asset_manager=" + mgr + "\">LOGIN AGAIN</a></p>" +
@@ -438,7 +443,7 @@ app.get("/acl\.?(json|html)?", (req, res, next) => {
     }
 });
 
-// Solr Proxy
+// Solr Proxy Handler
 app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  // TODO: configurable base path
     proxyReqPathResolver: function (req) {
         return new Promise(function (resolve, reject) {
@@ -447,8 +452,11 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
             if (queryString) {
                 queryString += "&"
             }
-            queryString += "wt=json";
-            queryString += "wt=json";
+
+            // currently just mock data
+            queryString += "wt=json";  // just a testing example currently
+            //
+
             var updatedPath = '/solr' + parts[0];
             var resolvedPathValue = updatedPath + (queryString ? '?' + queryString : '');
             console.log("Resolving with " + resolvedPathValue);
@@ -456,6 +464,11 @@ app.use('/solr', proxy('https://ss251856-us-east-1-aws.measuredsearch.com', {  /
         });
     }
 }));
+
+// 404 handler at the bottom of the "use" stack
+app.use(function (req, res, next) {
+    res.status(404).send("Sorry can't find that!")
+})
 
 app.listen(EXPRESS_PORT);
 console.log("express is listening on port " + EXPRESS_PORT);
