@@ -2,6 +2,8 @@ const express = require('express');
 const proxy = require('express-http-proxy');
 const axios = require('axios');
 
+const DEBUG = true;
+
 // Session
 const session = require('express-session');
 
@@ -113,7 +115,8 @@ app.get('/', function (req, res) {
 
 // OAuth Redirect Route - OAuth Server Authorize request should redirect here.
 app.get('/oauth2/redirect', async (req, res, next) => {
-    const DEBUG = false;
+
+    const DEBUG = false; // local scope DEBUG
     if (DEBUG) {
         console.log("==================================");
         console.dir(req.query);
@@ -122,6 +125,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
     const requestToken = req.query.code
     const state = JSON.parse(req.query.state);
     let debug_request = state.debug;
+    let format = state.format || "html";
     if (DEBUG) console.log("We got state = " + JSON.stringify(state, undefined, 2));
 
     if (!req.session.csrf_token) {
@@ -199,7 +203,7 @@ app.get('/oauth2/redirect', async (req, res, next) => {
             req.session["access_token"][mgr] = token_json;
             req.session.save();
         });
-        res.redirect('/process?asset_mgr=' + mgr + ((debug_request) ? "&debug=true" : ""));
+        res.redirect('/process?format=' + format + '&asset_mgr=' + mgr + ((debug_request) ? "&debug=true" : ""));
 
     } catch (err) {
         console.log("ERROR retrieving OAuth token: " + err);
@@ -221,6 +225,7 @@ app.get("/login", (req, res, next) => {
     if (req.query.debug) {
         debug_request = true;
     }
+    let format = req.query.format || "html";
 
     if (mgr === "autologin") {
         req.session.debug = debug_request;
@@ -231,7 +236,8 @@ app.get("/login", (req, res, next) => {
         let state = {
             asset_manager: mgr,
             previous_error: error,
-            debug: debug_request
+            debug: debug_request,
+            format: format
         }
         // TODO: maybe we should hex-encode this?
         // TODO: These params should be configurable!
@@ -248,11 +254,15 @@ app.get("/process", (req, res, next) => {
     const mgr = req.query.asset_mgr || "unknown";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
     let debug_request = false;
-    if (req.session.debug) {
+    if (req.session.debug === "true") {
         debug_request = true;
         delete req.session.debug_request;
     }
+
+    let format = "html";
+
     // no access_token, so try to login
+    // TODO: if in json mode: just return error.
     if (!req.session["access_token"] || !req.session["access_token"][mgr]) {
         console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
         console.dir(req.session.access_token);
@@ -267,6 +277,8 @@ app.get("/process", (req, res, next) => {
         res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token" + (debug_request) ? "&debug=true" : "");
         return;
     }
+
+    // TODO: allow this to check multiple services in one call.  This will make json mode more efficient and useful.
 
     // We should have authorization token now
     console.log("session.access_token=" + JSON.stringify(req.session["access_token"]));
@@ -324,14 +336,18 @@ app.get("/process", (req, res, next) => {
                 "access": access
             });
         }
+
+        // reload then save the session (in case another request has updated the session)
         req.session.reload(() => {
             req.session.memberships[mgr] = newdata;
             req.session.save(() => {
+                // Check whether all memberships are available...
 
-                // Check that all memberships are available...
-                console.log("++++++++++++++++++++++++++++++");
-                console.dir(req.session.memberships);
-                console.log("++++++++++++++++++++++++++++++");
+                if (DEBUG) {
+                    console.log("++++++++++++++++++++++++++++++");
+                    console.dir(req.session.memberships);
+                    console.log("++++++++++++++++++++++++++++++");
+                }
                 // memberships, access_tokens should match and should number 5.
 
                 if (Object.keys(req.session.memberships).length === 5) {
@@ -352,27 +368,32 @@ app.get("/process", (req, res, next) => {
                     req.session.acl = acl;
                     req.session.save();
                 }
-                var debugBody = "";
-		if (debug_request) {
-		    debugBody = "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
-                    "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
-                    "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
-                    "<h2>TOKENS</h2>" +
-                    "<ul>" +
-                    "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-                    "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-                    "<li>debug request = " + debug_request + "</li>" +
-                    "</ul>";
-		}
-                res.send("<html><header><title>loaded:" + mgr + "</title>" +
-                    "<link href='process.css' rel='stylesheet' type='text/css'>" +
-                    "</header><body class='success'>" +
-                    debugBody +
-                    "<pre>" +
-                    JSON.stringify(req.session.memberships, undefined, 2) +
-                    "</pre>" +
-                    "</body></html>"
-                );
+                if (format === "html") {
+                    var debugBody = "";
+                    if (debug_request) {
+                        debugBody = "We got a response from " + mgr + " (" + mgr_cfg.BASE_URL + ")!<p>\n" +
+                            "<h2>Processed</h2><pre>" + JSON.stringify(newdata, undefined, 2) + "</pre>\n" +
+                            "<h2>Raw</h2><pre>" + JSON.stringify(data, undefined, 2) + "</pre>\n" +
+                            "<h2>TOKENS</h2>" +
+                            "<ul>" +
+                            "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+                            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+                            "<li>debug request = " + debug_request + "</li>" +
+                            "</ul>";
+                    }
+                    res.send("<html><header><title>loaded:" + mgr + "</title>" +
+                        "<link href='process.css' rel='stylesheet' type='text/css'>" +
+                        "</header><body class='success'>" +
+                        debugBody +
+                        "<pre>" +
+                        JSON.stringify(req.session.memberships, undefined, 2) +
+                        "</pre>" +
+                        "</body></html>"
+                    );
+                } else if (format === "json") {
+                    res.setHeader("Content-Type", 'application/json');
+                    res.send("{   \"error\": \"Ack! json format not implemented yeti\" }");
+                }
             });
         });
     }).catch(error => {
@@ -381,29 +402,39 @@ app.get("/process", (req, res, next) => {
             if (error.response.status === 401) {
                 if (error.response.data && error.response.data.error === "invalid_token") {
                     console.log("The token is invalid.  Probably expired.");
+                    // TODO:  what do we do about the expired/invalid token?
                 }
             }
-
         }
-        console.log("===== BEGIN ENDPOINT CALL ERROR =====");
-        console.log(error);
-        console.log("===== END ENDPOINT CALL ERROR =====");
-        res.send("<html>" +
-            "<header><title>error:" + mgr + "</title>" +
-            "<link href='process.css' rel='stylesheet' type='text/css'>" +
-            "</header><body class='error'>" +
-            "We got an error!<p>\n" +
-            "<pre>" + error + " </pre>\n" +
-            "<p><a href=\"/login?asset_manager=" + mgr + "\">LOGIN AGAIN</a></p>" +
-            "<h2>RESPONSE DATA</H2>" +
-            // "<pre>" + (error.response)?JSON.stringify(error.response.data, undefined, 2):"No response" + "</pre>" +
-            "<h2>TOKENS</h2>" +
-            "<ul>" +
-            "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
-            "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
-            "<li>debug request = " + debug_request + "</li>" +
-            "</ul></body></html>"
-        );
+        console.error("Error during processing " + mgr + " callback");
+        console.error("===== BEGIN ENDPOINT CALL ERROR =====");
+        console.error(error);
+        console.error("===== END ENDPOINT CALL ERROR =====");
+
+
+        if (format === "html") {
+
+            res.send("<html>" +
+                "<header><title>error:" + mgr + "</title>" +
+                "<link href='process.css' rel='stylesheet' type='text/css'>" +
+                "</header><body class='error'>" +
+                "We got an error!<p>\n" +
+                "<pre>" + error + " </pre>\n" +
+                "<p><a href=\"/login?asset_manager=" + mgr + "\">LOGIN AGAIN</a></p>" +
+                "<h2>RESPONSE DATA</H2>" +
+                // "<pre>" + (error.response)?JSON.stringify(error.response.data, undefined, 2):"No response" + "</pre>" +
+                "<h2>TOKENS</h2>" +
+                "<ul>" +
+                "<li>access_token: <pre>" + JSON.stringify(req.session["access_token"], undefined, 2) + "</pre></li>" +
+                "<li>csrf_token: <pre>" + JSON.stringify(req.session["csrf_token"], undefined, 2) + "</pre></li>" +
+                "<li>debug request = " + debug_request + "</li>" +
+                "</ul></body></html>"
+            );
+        }
+        else if (format === "json") {
+            res.setHeader("Content-Type", 'application/json');
+            res.send("{   \"error\":  \"" + error + "\" }");
+        }
 
     });
 
