@@ -19,6 +19,7 @@
                 if ($('iframe.loaded').length === 5) {
                     $('#auth').html("Groups are all loaded!");
                     console.dir($('iframe.loaded'));
+	  	    document.location.href="/acl.json";
                 }
             }
         );
