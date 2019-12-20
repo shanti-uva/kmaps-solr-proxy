@@ -252,6 +252,7 @@ app.get("/login", (req, res, next) => {
 app.get("/process", (req, res, next) => {
     // Check the session
     const mgr = req.query.asset_mgr || "unknown";
+    const format = req.query.format||"html";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
     let debug_request = false;
     if (req.session.debug === "true") {
@@ -259,7 +260,6 @@ app.get("/process", (req, res, next) => {
         delete req.session.debug_request;
     }
 
-    let format = "html";
 
     // no access_token, so try to login
     // TODO: if in json mode: just return error.
@@ -292,12 +292,9 @@ app.get("/process", (req, res, next) => {
         // url: process.env.MANDALA_URL + "/ogauth/ogmembership",
         // url: process.env.MANDALA_URL + "/ogauth/ogusergroups?callback=myFunction",
         url: mgr_cfg.BASE_URL + "/ogauth/ogusergroups",
-        // url: "https://audio-video-dev.shanti.virginia.edu/oauth2/UserInfo",
         headers: {
-            // accept: 'application/javascript',
             accept: 'application/json',
             Authorization: "Bearer " + access,
-            // "X-CSRF-Token": xcsrf
         }
     }).then((response) => {
 
@@ -364,8 +361,8 @@ app.get("/process", (req, res, next) => {
                         });
                     });
                     console.log("Got " + acl.length + " memberships");
-                    console.dir(acl);
-                    req.session.acl = acl;
+                    // console.dir(acl);
+		    req.session.acl = acl;
                     req.session.save();
                 }
                 if (format === "html") {
@@ -392,7 +389,7 @@ app.get("/process", (req, res, next) => {
                     );
                 } else if (format === "json") {
                     res.setHeader("Content-Type", 'application/json');
-                    res.send("{   \"error\": \"Ack! json format not implemented yeti\" }");
+                    res.send(JSON.stringify(req.session.memberships, undefined, 2));
                 }
             });
         });
