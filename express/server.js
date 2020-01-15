@@ -30,7 +30,7 @@ const REDIS_PASS = (process.env && process.env.REDIS_PASS) ? process.env.REDIS_P
 const REDIS_URL = (process.env && process.env.REDIS_URL) ? process.env.REDIS_URL : "redis://localhost"
 
 const redis = require('redis');
-const redisClient = redis.createClient({url: REDIS_URL, password: REDIS_PASS});
+// const redisClient = redis.createClient({url: REDIS_URL, password: REDIS_PASS});
 const redisStore = require('connect-redis')(session);
 
 // Constants
