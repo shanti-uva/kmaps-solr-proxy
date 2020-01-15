@@ -21,6 +21,10 @@
     "push-redis": "docker push 127.0.0.1:5000/redis-cache",
     "push-all": "npm run push-nginx && npm run push-express && npm run push-redis",
     "do-all": "npm run clean; npm run build && npm run registry && npm run push-all && npm run stack-deploy",
-    "reload": "npm run stack-rm && sleep 10 && npm run stack-deploy"
+    "reload": "npm run stack-rm && sleep 10 && npm run stack-deploy",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0"
   }
 }
