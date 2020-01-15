@@ -423,8 +423,7 @@ function process(req, res, state, mgr_cfg, access_token) {
 app.get("/process", (req, res, next) => {
 
     // Check the session
-    console.dir("req.query.state");
-    const state = JSON.parse(req.query.state);
+    const state = (req.query.state)?JSON.parse(req.query.state):{};
     const mgr = req.query.asset_mgr || "unknown";
     const format = req.query.format || "html";
     const mgr_cfg = MANAGER_CONFIGS[mgr];
