@@ -436,7 +436,13 @@ app.get("/process", (req, res, next) => {
 
     // no access_token, so try to login
     // TODO: if in json mode: just return error. Or skip.
-    var access_token = req.session["access_token"][mgr];
+    var access_token = req.session["access_token"][mgr].access_token;
+   if (debug_request) {	
+	console.error("=====ACCESS TOKEN====");
+	console.dir(access_token);
+	console.error("=====END ACCESS TOKEN====");
+   }
+
     if (format === "html" && (!req.session["access_token"] || !access_token)) {
         console.log("Missing access_token. mgr = " + mgr + ". Redirecting to /login");
         console.dir(req.session.access_token);
@@ -447,7 +453,6 @@ app.get("/process", (req, res, next) => {
             console.error(errmsg);
             next(errmsg);
         }
-
         res.redirect("/login?asset_manager=" + mgr + "&error=no_access_token" + (debug_request) ? "&debug=true" : "");
         return;
     }
