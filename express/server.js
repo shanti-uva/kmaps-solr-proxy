@@ -231,8 +231,9 @@ app.get('/oauth2/redirect', async (req, res, next) => {
             req.session.save();
         });
 
+        let statejson = encodeURI(JSON.stringify(state));
         // let's post-process.  All data should be in the session now.
-        res.redirect('/process?format=' + format + '&asset_mgr=' + mgr + '&state=" + statejson + ((debug_request) ? "&debug=true" : ""));
+        res.redirect('/process?format=' + format + '&asset_mgr=' + mgr + '&state=' + statejson + ((debug_request) ? "&debug=true" : ""));
 
     } catch (err) {
         console.log("ERROR retrieving OAuth token: " + err);
